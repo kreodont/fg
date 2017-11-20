@@ -3,6 +3,7 @@ import shutil
 from bs4 import BeautifulSoup
 
 for page_number in range(1, 42):
+    print('Page %s' % page_number)
     url = 'https://www.dndbeyond.com/monsters?page=%s' % page_number
     result = requests.get(url)
     soup = BeautifulSoup(result.text, "html5lib")
@@ -15,7 +16,10 @@ for page_number in range(1, 42):
             continue
         image_link = image_div['href']
         print('%s %s' % (name, image_link))
-        response = requests.get(image_link, stream=True)
-        with open('%s.jpg' % name, 'wb') as out_file:
-            shutil.copyfileobj(response.raw, out_file)
-        del response
+        try:
+            response = requests.get(image_link, stream=True)
+            with open('%s.jpg' % name, 'wb') as out_file:
+                shutil.copyfileobj(response.raw, out_file)
+            del response
+        except Exception as e:
+            print(e)
