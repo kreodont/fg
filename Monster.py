@@ -94,11 +94,14 @@ class Monster:
 
         return result
 
+    def parse_xml(self, xml_text):
+        pass
+
 if __name__ == '__main__':
     test_monster = Monster()
     test_monster.name = 'Тестовое имя'
     test_monster.name = 'Test name 1'
     test_monster.dex = 2
-    print(test_monster.hp)
+    print(test_monster.find_attribute_by_ru_name('хиты'))
     # if test_monster.not_complete():
     #     print(test_monster.not_complete()['reason'])
