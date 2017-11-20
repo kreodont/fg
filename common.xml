@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<root version="3.3" release="8|CoreRPG:3">
+	<image>
+		<category name="RUNPC" baseicon="0" decalicon="0">
+			<id-00010>
+				<image type="image">
+					<bitmap>Aarakocra.jpg</bitmap>
+				</image>
+				<isidentified type="number">0</isidentified>
+				<name type="string">Aarakocra</name>
+			</id-00010>
+		</category>
+	</image>
+	<library>
+		<rudnd5e static="true">
+			<categoryname type="string">Rus</categoryname>
+			<name type="string">rudnd5e</name>
+			<entries>
+				<imagewindow>
+					<librarylink type="windowreference">
+						<class>referenceindexsorted</class>
+						<recordname>lists.imagewindow@RuDnD5e</recordname>
+					</librarylink>
+					<name type="string">Images &#38; Maps</name>
+				</imagewindow>
+				<npc>
+					<librarylink type="windowreference">
+						<class>referenceindexsorted</class>
+						<recordname>lists.npc@RuDnD5e</recordname>
+					</librarylink>
+					<name type="string">NPCs</name>
+				</npc>
+			</entries>
+		</rudnd5e>
+	</library>
+	<lists>
+		<imagewindow>
+			<name type="string">Images &#38; Maps</name>
+			<index>
+				<id-00010>
+					<listlink type="windowreference">
+						<class>imagewindow</class>
+						<recordname>image.id-00010@RuDnD5e</recordname>
+					</listlink>
+					<name type="string">Aarakocra</name>
+				</id-00010>
+			</index>
+		</imagewindow>
+		<npc>
+			<name type="string">NPCs</name>
+			<index>
+				<id-00001>
+					<listlink type="windowreference">
+						<class>npc</class>
+						<recordname>npc.id-00001@RuDnD5e</recordname>
+					</listlink>
+					<name type="string">&#192;&#224;&#240;&#224;&#234;&#238;&#240;&#224;</name>
+				</id-00001>
+			</index>
+		</npc>
+	</lists>
+	<npc>
+		<category name="Ru" baseicon="0" decalicon="0">
+			<id-00001>
+				<abilities>
+					<charisma>
+						<bonus type="number">0</bonus>
+						<score type="number">11</score>
+					</charisma>
+					<constitution>
+						<bonus type="number">0</bonus>
+						<score type="number">10</score>
+					</constitution>
+					<dexterity>
+						<bonus type="number">2</bonus>
+						<score type="number">14</score>
+					</dexterity>
+					<intelligence>
+						<bonus type="number">0</bonus>
+						<score type="number">11</score>
+					</intelligence>
+					<strength>
+						<bonus type="number">0</bonus>
+						<score type="number">10</score>
+					</strength>
+					<wisdom>
+						<bonus type="number">1</bonus>
+						<score type="number">12</score>
+					</wisdom>
+				</abilities>
+				<ac type="number">12</ac>
+				<actions>
+					<id-00001>
+						<desc type="string">Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 4 (1d4 + 2) slashing damage.</desc>
+						<name type="string">Talon</name>
+					</id-00001>
+					<id-00002>
+						<desc type="string">Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) piercing damage. Or Ranged Weapon Attack: +4 to hit, range 30/120 ft., one target. Hit: 5 (1d6 + 2) piercing damage.</desc>
+						<name type="string">Javelin</name>
+					</id-00002>
+				</actions>
+				<alignment type="string">neutral good</alignment>
+				<cr type="string">1/4</cr>
+				<hd type="string">(3d8)</hd>
+				<hp type="number">13</hp>
+				<innatespells>
+				</innatespells>
+				<lairactions>
+				</lairactions>
+				<languages type="string">Auran, Aarakocra</languages>
+				<legendaryactions>
+				</legendaryactions>
+				<locked type="number">1</locked>
+				<name type="string">&#192;&#224;&#240;&#224;&#234;&#238;&#240;&#224;</name>
+				<reactions>
+				</reactions>
+				<senses type="string">passive Perception 15</senses>
+				<size type="string">Medium</size>
+				<skills type="string">Perception +5</skills>
+				<speed type="string">20 ft., fly 50 ft.</speed>
+				<spells>
+				</spells>
+				<text type="formattedtext">
+					<h>&#192;&#224;&#240;&#224;&#234;&#238;&#240;&#224;</h>
+					<p>Kartinka srazu pod etoy strokoy</p>
+					<p></p>
+					<linklist>
+						<link class="imagewindow" recordname="image.id-00010">Aarakocra</link>
+					</linklist>
+					<p>&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;! &#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210;</p>
+					<p>token derro.png</p>
+					<p> &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#236;&#236;</p>
+					<p></p>
+					<h>&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!</h>
+					<p>&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!</p>
+				</text>
+				<token type="token">tokens/Derro.png@RuDnD5e</token>
+				<traits>
+					<id-00001>
+						<desc type="string">If the aarakocra is flying and dives at least 30 feet straight toward a target and then hits it with a melee weapon attack, the attack deals an extra 3 (1d6) damage to the target.</desc>
+						<name type="string">Dive Attack</name>
+					</id-00001>
+				</traits>
+				<type type="string">humanoid (aarakocra)</type>
+				<xp type="number">50</xp>
+			</id-00001>
+		</category>
+	</npc>
+</root>
