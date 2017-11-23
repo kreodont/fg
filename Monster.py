@@ -1,5 +1,6 @@
 import unicodedata
 import xml.etree.ElementTree as Et
+import re
 
 latin_letters = {}
 
@@ -15,6 +16,33 @@ def only_roman_chars(unistr):
     return all(is_latin(uchr)
                for uchr in unistr
                if uchr.isalpha())  # isalpha suggested by John Machin
+
+
+def translate_to_iso_codes(text):
+    first_letter_code = 192
+    all_letters = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдежзийклмнопрстуфхцчшщьыъэюя'
+    result_text = ''
+
+    for char in text:
+        if char in all_letters:
+            char_position = all_letters.index(char)
+            code = first_letter_code + char_position
+            result_text += '&#%s' % code
+        else:
+            result_text += char
+
+    return result_text
+
+
+def translate_from_iso_codes(text):
+    russian_letters = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдежзийклмнопрстуфхцчшщьыъэюя'
+    output_text = text
+    letters = re.findall('&#.+?;', text)
+    for letter in letters:
+        letter_number = int(letter[2:-1]) - 192
+        output_text = output_text.replace(letter, russian_letters[letter_number])
+
+    return output_text
 
 
 class Monster:
@@ -128,14 +156,15 @@ class Monster:
 
 
 if __name__ == '__main__':
+    print(translate_from_iso_codes('&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!'))
     # test_monster = Monster()
     # test_monster.name = 'Тестовое имя'
     # test_monster.name = 'Test name 1'
     # test_monster.dex = 2
     # print(test_monster.find_attribute_by_ru_name('хиты'))
-    with open('common.xml') as xml_file:
-        Monster.parse_xml(xml_file.read())
-
-    print(Monster.registered_monsters)
+    # with open('common.xml') as xml_file:
+    #     Monster.parse_xml(xml_file.read())
+    #
+    # print(Monster.registered_monsters)
     # if test_monster.not_complete():
     #     print(test_monster.not_complete()['reason'])
