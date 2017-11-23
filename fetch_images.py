@@ -14,6 +14,7 @@ for page_number in range(1, 42):
         if not image_div:
             print('%s has no picture' % name)
             continue
+
         image_link = image_div['href']
         print('%s %s' % (name, image_link))
         try:

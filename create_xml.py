@@ -13,4 +13,5 @@ def translate_to_iso_codes(text):
 
     return result_text
 
+
 print(translate_to_iso_codes('Заклинатель This is rule'))

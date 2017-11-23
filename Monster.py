@@ -1,4 +1,5 @@
 import unicodedata
+import xml.etree.ElementTree as Et
 
 latin_letters = {}
 
@@ -21,8 +22,9 @@ class Monster:
                                    'hp': 'хиты', 'innatespells': 'врожденные заклинания', 'lairactions': 'действия логова', 'languages': 'языки', 'legendaryactions': 'легендарные действия', 'reactions': 'реакции', 'senses': 'чувства',
                                    'size': 'размер', 'skills': 'умения', 'speed': 'скорость', 'spells': 'заклинания', 'text': 'дополнительный текст', 'traits': 'свойства', 'type': 'тип', 'xp': 'опыт'}
     mandatory_attributes_list = ['name', 'cha', 'con', 'dex', 'int', 'str', 'wis', 'ac', 'hp']
+    registered_monsters = {}  # This is needed to correctly assign id- tags for xml
 
-    def __init__(self):
+    def __init__(self, register_number=None):
         self.name = None
         self.cha = None
         self.con = None
@@ -50,6 +52,17 @@ class Monster:
         self.traits = []
         self.type = None
         self.xp = None
+        if register_number:
+            Monster.registered_monsters[register_number] = self
+        else:
+            if not Monster.registered_monsters:
+                Monster.registered_monsters[1] = self
+            else:
+                last_number = max(Monster.registered_monsters.keys())
+                Monster.registered_monsters[last_number + 1] = self
+
+    def __repr__(self):
+        return '%s (%s)' % (self.name['en_value'], self.name['ru_value'])
 
     def __setattr__(self, key, value):
         if value is None:
@@ -94,14 +107,35 @@ class Monster:
 
         return result
 
-    def parse_xml(self, xml_text):
-        pass
+    @staticmethod
+    def parse_xml(xml_text):
+        if not xml_text:
+            raise Exception('Empty XML provided')
+
+        root_element = Et.fromstring(xml_text)
+        npc_element = root_element.find('npc')
+        if not npc_element:
+            raise Exception('Tag npc not found')
+
+        category_element = npc_element.find('category')
+        if not category_element:
+            raise Exception('There should be tag category under npc tag')
+
+        xml_monsters = category_element.findall('*')
+        for xml_monster in xml_monsters:
+            monster_number = int(xml_monster.tag.replace('id-', ''))
+            monster = Monster()
+
 
 if __name__ == '__main__':
-    test_monster = Monster()
-    test_monster.name = 'Тестовое имя'
-    test_monster.name = 'Test name 1'
-    test_monster.dex = 2
-    print(test_monster.find_attribute_by_ru_name('хиты'))
+    # test_monster = Monster()
+    # test_monster.name = 'Тестовое имя'
+    # test_monster.name = 'Test name 1'
+    # test_monster.dex = 2
+    # print(test_monster.find_attribute_by_ru_name('хиты'))
+    with open('common.xml') as xml_file:
+        Monster.parse_xml(xml_file.read())
+
+    print(Monster.registered_monsters)
     # if test_monster.not_complete():
     #     print(test_monster.not_complete()['reason'])
