@@ -13,9 +13,7 @@ def is_latin(uchr):
 
 
 def only_roman_chars(unistr):
-    return all(is_latin(uchr)
-               for uchr in unistr
-               if uchr.isalpha())  # isalpha suggested by John Machin
+    return all(is_latin(uchr) for uchr in unistr if uchr.isalpha())  # isalpha suggested by John Machin
 
 
 def translate_to_iso_codes(text):
@@ -46,20 +44,20 @@ def translate_from_iso_codes(text):
 
 
 class Monster:
-    attribute_names_translation = {'name': 'имя', 'cha': 'хар', 'con': 'тел', 'dex': 'лов', 'int': 'инт', 'str': 'сил', 'wis': 'мдр', 'ac': 'класс доспеха', 'actions': 'действия', 'alignment': 'мировоззрение', 'cr': 'опасность', 'hd': 'кубики хитов',
+    attribute_names_translation = {'name': 'имя', 'charisma': 'хар', 'constitution': 'тел', 'dexterity': 'лов', 'intelligence': 'инт', 'strength': 'сил', 'wisdom': 'мдр', 'ac': 'класс доспеха', 'actions': 'действия', 'alignment': 'мировоззрение', 'cr': 'опасность', 'hd': 'кубики хитов',
                                    'hp': 'хиты', 'innatespells': 'врожденные заклинания', 'lairactions': 'действия логова', 'languages': 'языки', 'legendaryactions': 'легендарные действия', 'reactions': 'реакции', 'senses': 'чувства',
                                    'size': 'размер', 'skills': 'умения', 'speed': 'скорость', 'spells': 'заклинания', 'text': 'дополнительный текст', 'traits': 'свойства', 'type': 'тип', 'xp': 'опыт'}
-    mandatory_attributes_list = ['name', 'cha', 'con', 'dex', 'int', 'str', 'wis', 'ac', 'hp']
+    mandatory_attributes_list = ['name', 'charisma', 'constitution', 'dexterity', 'intelligence', 'strength', 'wisdom', 'ac', 'hp']
     registered_monsters = {}  # This is needed to correctly assign id- tags for xml
 
     def __init__(self, register_number=None):
         self.name = None
-        self.cha = None
-        self.con = None
-        self.dex = None
-        self.int = None
-        self.str = None
-        self.wis = None
+        self.charisma = None
+        self.constitution = None
+        self.dexterity = None
+        self.intelligence = None
+        self.strength = None
+        self.wisdom = None
         self.ac = None
         self.actions = []
         self.alignment = None
@@ -81,7 +79,10 @@ class Monster:
         self.type = None
         self.xp = None
         if register_number:
-            Monster.registered_monsters[register_number] = self
+            if register_number in Monster.registered_monsters.keys():
+                Monster.registered_monsters[max(Monster.registered_monsters.keys()) + 1] = self
+            else:
+                Monster.registered_monsters[register_number] = self
         else:
             if not Monster.registered_monsters:
                 Monster.registered_monsters[1] = self
@@ -106,7 +107,12 @@ class Monster:
                 self.__dict__[key]['en_value'] = value_int
                 return
             except (TypeError, ValueError):
-                if only_roman_chars(value):
+                print(value)
+                if '&#' in value:
+                    print(value)
+                    self.__dict__[key]['ru_value'] = translate_from_iso_codes(value)
+                    return
+                elif only_roman_chars(value):
                     self.__dict__[key]['en_value'] = value
                     return
                 else:
@@ -151,20 +157,34 @@ class Monster:
 
         xml_monsters = category_element.findall('*')
         for xml_monster in xml_monsters:
-            monster_number = int(xml_monster.tag.replace('id-', ''))
-            monster = Monster()
+            monster = Monster(register_number=int(xml_monster.tag.replace('id-', '')))
+            monster.charisma = xml_monster.find('abilities/charisma/score').text
+            monster.constitution = xml_monster.find('abilities/constitution/score').text
+            monster.dexterity = xml_monster.find('abilities/dexterity/score').text
+            monster.intelligence = xml_monster.find('abilities/intelligence/score').text
+            monster.strength = xml_monster.find('abilities/strength/score').text
+            monster.wisdom = xml_monster.find('abilities/wisdom/score').text
+            monster.ac = xml_monster.find('ac').text
+            monster.alignment = xml_monster.find('alignment').text
+            monster.cr = xml_monster.find('cr').text
+            monster.hp = xml_monster.find('hp').text
+            monster.hd = xml_monster.find('hd').text
+            monster.languages = xml_monster.find('languages').text
+            monster.name = xml_monster.find('name').text
+            # print(monster.cha)
 
 
 if __name__ == '__main__':
-    print(translate_from_iso_codes('&#210;&#197;&#209;&#210; &#242;&#229;&#241;&#242;!'))
+    pass
+    # print(translate_from_iso_codes('&#192;&#224;&#240;&#224;&#234;&#238;&#240;&#224;'))
     # test_monster = Monster()
     # test_monster.name = 'Тестовое имя'
     # test_monster.name = 'Test name 1'
     # test_monster.dex = 2
     # print(test_monster.find_attribute_by_ru_name('хиты'))
-    # with open('common.xml') as xml_file:
-    #     Monster.parse_xml(xml_file.read())
-    #
-    # print(Monster.registered_monsters)
+    with open('common.xml') as xml_file:
+        Monster.parse_xml(xml_file.read())
+
+    # print(Monster.registered_monsters[1].name['en_value'])
     # if test_monster.not_complete():
     #     print(test_monster.not_complete()['reason'])
