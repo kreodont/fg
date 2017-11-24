@@ -33,12 +33,24 @@ def translate_to_iso_codes(text):
 
 
 def translate_from_iso_codes(text):
-    russian_letters = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдежзийклмнопрстуфхцчшщьыъэюя'
+    russian_letters = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя'
+    for letter in text:
+        letter_code = int.from_bytes(letter.encode('latin-1'), 'big')
+        if 192 <= letter_code <= 256:
+            text = text.replace(letter, russian_letters[letter_code - 192])
+
     output_text = text
     letters = re.findall('&#.+?;', text)
     for letter in letters:
-        letter_number = int(letter[2:-1]) - 192
-        output_text = output_text.replace(letter, russian_letters[letter_number])
+        if letter == '&#8226;':
+            ru_letter = '•'
+        elif letter == '&#8212;':
+            ru_letter = '—'
+        else:
+            letter_number = int(letter[2:-1]) - 192
+            ru_letter = russian_letters[letter_number]
+
+        output_text = output_text.replace(letter, ru_letter)
 
     return output_text
 
@@ -46,8 +58,16 @@ def translate_from_iso_codes(text):
 class Monster:
     attribute_names_translation = {'name': 'имя', 'charisma': 'хар', 'constitution': 'тел', 'dexterity': 'лов', 'intelligence': 'инт', 'strength': 'сил', 'wisdom': 'мдр', 'ac': 'класс доспеха', 'actions': 'действия', 'alignment': 'мировоззрение', 'cr': 'опасность', 'hd': 'кубики хитов',
                                    'hp': 'хиты', 'innatespells': 'врожденные заклинания', 'lairactions': 'действия логова', 'languages': 'языки', 'legendaryactions': 'легендарные действия', 'reactions': 'реакции', 'senses': 'чувства',
-                                   'size': 'размер', 'skills': 'умения', 'speed': 'скорость', 'spells': 'заклинания', 'text': 'дополнительный текст', 'traits': 'свойства', 'type': 'тип', 'xp': 'опыт'}
+                                   'size': 'размер', 'skills': 'умения', 'speed': 'скорость', 'spells': 'заклинания', 'text': 'дополнительный текст', 'traits': 'свойства', 'type': 'тип', 'xp': 'опыт', 'damageresistances': 'сопротивляемость урону',
+                                   'conditionimmunities': 'иммунитет к состояниям', 'damagevulnerabilities': 'уязвимость к урону', 'damageimmunities': 'уязвимость к урону', 'savingthrows': 'спасброски'}
+
     mandatory_attributes_list = ['name', 'charisma', 'constitution', 'dexterity', 'intelligence', 'strength', 'wisdom', 'ac', 'hp']
+
+    path_in_xml = {'name': 'name', 'charisma': 'abilities/charisma/score', 'constitution': 'abilities/constitution/score', 'dexterity': 'abilities/dexterity/score', 'intelligence': 'abilities/intelligence/score', 'strength': 'abilities/strength/score',
+                   'wisdom': 'abilities/wisdom/score', 'ac': 'ac', 'alignment': 'alignment', 'cr': 'cr', 'hp': 'hp', 'hd': 'hd', 'languages': 'languages', 'senses': 'senses', 'size': 'size', 'skills': 'skills', 'speed': 'speed', 'text': 'text',
+                   'xp': 'xp', 'damageresistances': 'damageresistances', 'conditionimmunities': 'conditionimmunities', 'damagevulnerabilities': 'damagevulnerabilities', 'innatespells': 'innatespells', 'actions': 'actions', 'reactions': 'reactions',
+                   'traits': 'traits', 'spells': 'spells', 'savingthrows': 'savingthrows'}
+
     registered_monsters = {}  # This is needed to correctly assign id- tags for xml
 
     def __init__(self, register_number=None):
@@ -59,25 +79,31 @@ class Monster:
         self.strength = None
         self.wisdom = None
         self.ac = None
-        self.actions = []
+        self.actions = None
         self.alignment = None
         self.cr = None
         self.hd = None
         self.hp = None
-        self.innatespells = []
-        self.lairactions = []
+        self.innatespells = None
+        self.lairactions = None
         self.languages = None
-        self.legendaryactions = []
-        self.reactions = []
+        self.legendaryactions = None
+        self.reactions = None
         self.senses = None
         self.size = None
         self.skills = None
         self.speed = None
-        self.spells = []
+        self.spells = None
         self.text = None
-        self.traits = []
+        self.traits = None
         self.type = None
         self.xp = None
+        self.damageresistances = None
+        self.conditionimmunities = None
+        self.damagevulnerabilities = None
+        self.damageimmunities = None
+        self.savingthrows = None
+
         if register_number:
             if register_number in Monster.registered_monsters.keys():
                 Monster.registered_monsters[max(Monster.registered_monsters.keys()) + 1] = self
@@ -91,7 +117,17 @@ class Monster:
                 Monster.registered_monsters[last_number + 1] = self
 
     def __repr__(self):
-        return '%s (%s)' % (self.name['en_value'], self.name['ru_value'])
+        text_to_return = '\n'
+        for attribute_name in sorted(self.__dict__.keys()):
+            value = self.__dict__[attribute_name]
+            if not value:
+                text_to_return += '%s: %s\n' % (attribute_name, value)
+            else:
+                if value['en_value'] == value['ru_value']:
+                    text_to_return += '%s: %s\n' % (attribute_name, value['en_value'])
+                else:
+                    text_to_return += '%s: %s (%s)\n' % (attribute_name, value['en_value'], value['ru_value'])
+        return text_to_return + '\n'
 
     def __setattr__(self, key, value):
         if value is None:
@@ -107,17 +143,11 @@ class Monster:
                 self.__dict__[key]['en_value'] = value_int
                 return
             except (TypeError, ValueError):
-                print(value)
-                if '&#' in value:
-                    print(value)
-                    self.__dict__[key]['ru_value'] = translate_from_iso_codes(value)
-                    return
-                elif only_roman_chars(value):
-                    self.__dict__[key]['en_value'] = value
-                    return
+                translated = translate_from_iso_codes(value)
+                if translated != value:
+                    self.__dict__[key]['ru_value'] = translated
                 else:
-                    self.__dict__[key]['ru_value'] = value
-                    return
+                    self.__dict__[key]['en_value'] = value
 
     def find_attribute_by_ru_name(self, ru_name):
         ru_to_en_translation = {v: k for k, v in Monster.attribute_names_translation.items()}
@@ -158,32 +188,25 @@ class Monster:
         xml_monsters = category_element.findall('*')
         for xml_monster in xml_monsters:
             monster = Monster(register_number=int(xml_monster.tag.replace('id-', '')))
-            monster.charisma = xml_monster.find('abilities/charisma/score').text
-            monster.constitution = xml_monster.find('abilities/constitution/score').text
-            monster.dexterity = xml_monster.find('abilities/dexterity/score').text
-            monster.intelligence = xml_monster.find('abilities/intelligence/score').text
-            monster.strength = xml_monster.find('abilities/strength/score').text
-            monster.wisdom = xml_monster.find('abilities/wisdom/score').text
-            monster.ac = xml_monster.find('ac').text
-            monster.alignment = xml_monster.find('alignment').text
-            monster.cr = xml_monster.find('cr').text
-            monster.hp = xml_monster.find('hp').text
-            monster.hd = xml_monster.find('hd').text
-            monster.languages = xml_monster.find('languages').text
-            monster.name = xml_monster.find('name').text
-            # print(monster.cha)
+            for attribute in monster.__dict__.keys():
+                if attribute in Monster.path_in_xml.keys():
+                    xml_path = Monster.path_in_xml[attribute]
+                    tag = xml_monster.find(xml_path)
+                    if tag is None:
+                        monster.__setattr__(attribute, '')
+                    else:
+                        text = tag.text
+                        inner_tags = tag.findall('*')
+                        for itag in inner_tags:
+                            text += Et.tostring(itag).decode('utf-8')
+                        monster.__setattr__(attribute, text)
 
 
 if __name__ == '__main__':
-    pass
-    # print(translate_from_iso_codes('&#192;&#224;&#240;&#224;&#234;&#238;&#240;&#224;'))
-    # test_monster = Monster()
-    # test_monster.name = 'Тестовое имя'
-    # test_monster.name = 'Test name 1'
-    # test_monster.dex = 2
-    # print(test_monster.find_attribute_by_ru_name('хиты'))
     with open('common.xml') as xml_file:
         Monster.parse_xml(xml_file.read())
+
+    print(Monster.registered_monsters)
 
     # print(Monster.registered_monsters[1].name['en_value'])
     # if test_monster.not_complete():
