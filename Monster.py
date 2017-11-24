@@ -1,6 +1,7 @@
 import unicodedata
 import xml.etree.ElementTree as Et
 import re
+import pickle
 
 latin_letters = {}
 
@@ -196,18 +197,38 @@ class Monster:
                         monster.__setattr__(attribute, '')
                     else:
                         text = tag.text
+                        if attribute == 'name':
+                            english_name = re.findall(" \((.+)\)$", text)
+                            # if '))' in text:
+                            #     half_text = text.split('(')[-1] + ')'
+                            #     english_name = re.findall("\((.+)\)", half_text)
+                            # else:
+                            #     english_name = re.findall("\((.+)\)", text)
+                            if english_name:
+                                monster.name['en_value'] = english_name[-1]
+                                if '(' in monster.name['en_value']:
+                                    monster.name['en_value'] += ')'
+
                         inner_tags = tag.findall('*')
                         for itag in inner_tags:
                             text += Et.tostring(itag).decode('utf-8')
+
                         monster.__setattr__(attribute, text)
+
+    @staticmethod
+    def save_to_file():
+        with open('monsters.obj', 'wb') as f:
+            f.write(pickle.dumps(Monster.registered_monsters))
+
+    @staticmethod
+    def load_from_file():
+        with open('monsters.obj', 'rb') as f:
+            Monster.registered_monsters = pickle.loads(f.read())
 
 
 if __name__ == '__main__':
-    with open('common.xml') as xml_file:
-        Monster.parse_xml(xml_file.read())
-
-    print(Monster.registered_monsters)
-
-    # print(Monster.registered_monsters[1].name['en_value'])
-    # if test_monster.not_complete():
-    #     print(test_monster.not_complete()['reason'])
+    # with open('db.xml') as xml_file:
+    #     Monster.parse_xml(xml_file.read())
+    Monster.load_from_file()
+    for m in Monster.registered_monsters.values():
+        print(m.name['en_value'])
