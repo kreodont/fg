@@ -236,7 +236,10 @@ if __name__ == '__main__':
     tokens_files = [os.path.basename(f).replace('.png', '') for f in glob.glob('tokens/*.png')]
 
     for m in Monster.registered_monsters.values():
-        print(m.name['ru_value'])
+        ru_name = m.name['ru_value']
+        en_name = m.name['en_value']
+        print(ru_name)
+
     # Monster.load_from_file()
     # number = 0
     # for m in Monster.registered_monsters.values():
@@ -252,3 +255,4 @@ if __name__ == '__main__':
     #         image_files.remove(name)
     # print(image_files)
     # print(number)
+    Monster.save_to_file()
