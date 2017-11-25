@@ -231,18 +231,20 @@ class Monster:
 if __name__ == '__main__':
     # with open('db.xml') as xml_file:
     #     Monster.parse_xml(xml_file.read())
+    Monster.load_from_file()
     image_files = [os.path.basename(f).replace('.jpg', '') for f in glob.glob('images/*.jpg')]
     tokens_files = [os.path.basename(f).replace('.png', '') for f in glob.glob('tokens/*.png')]
 
-    Monster.load_from_file()
-    number = 0
     for m in Monster.registered_monsters.values():
-        name = m.name['en_value'].replace(' ', '').replace('-', '_').replace("'", '_').lower()
-        if name not in tokens_files:
-            print('%s.png' % name)
-            number += 1
+        print(m.name['ru_value'])
+    # Monster.load_from_file()
+    # number = 0
+    # for m in Monster.registered_monsters.values():
+    #     name = m.name['en_value'].replace(' ', '').replace('-', '_').replace("'", '_').lower()
+    #     if name not in tokens_files:
+    #         print('%s.png' % name)
+    #         number += 1
 
-    print(number)
     #     if name not in image_files:
     #         print('%s.jpg' % name)
     #         number += 1
