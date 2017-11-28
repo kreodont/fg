@@ -21,11 +21,15 @@ def only_roman_chars(unistr):
 
 def translate_to_iso_codes(text):
     first_letter_code = 192
-    all_letters = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщьыьэюяё'
+    all_letters = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя'
     result_text = ''
 
     for char in text:
-        if char in all_letters:
+        if char == 'ё':
+            result_text += '&#184;'
+        elif char == 'Ё':
+            result_text += '&#168;'
+        elif char in all_letters:
             char_position = all_letters.index(char)
             code = first_letter_code + char_position
             result_text += '&#%s;' % code
@@ -41,6 +45,10 @@ def translate_from_iso_codes(text):
         letter_code = int.from_bytes(letter.encode('latin-1'), 'big')
         if 192 <= letter_code <= 256:
             text = text.replace(letter, russian_letters[letter_code - 192])
+        elif letter_code == 184:
+            text = text.replace(letter, 'ё')
+        elif letter_code == 168:
+            text = text.replace(letter, 'Ё')
 
     output_text = text
     letters = re.findall('&#.+?;', text)
@@ -226,6 +234,19 @@ class Monster:
     def load_from_file():
         with open('monsters.obj', 'rb') as f:
             Monster.registered_monsters = pickle.loads(f.read())
+
+    @staticmethod
+    def find_several_elements_by_value(attribute_name, value):
+        elements_to_return = []
+        for element in Monster.registered_monsters.values():
+            if attribute_name not in element.__dict__.keys():
+                continue
+            else:
+                values_dict = element.__dict__[attribute_name]
+                if value.lower() in values_dict['ru_value'].lower() or value.lower() in values_dict['en_value'].lower():
+                    elements_to_return.append(element)
+
+        return elements_to_return
 
 
 if __name__ == '__main__':

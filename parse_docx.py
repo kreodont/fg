@@ -1,4 +1,5 @@
 from docx import Document
+import pickle
 document = Document('bestiary.docx')
 monsters_names_to_text = {}
 exceptions = ('Действия', 'Легендарные действия')
@@ -10,24 +11,29 @@ current_monster_name = ''
 
 for paragraph in document.paragraphs:
     paragraph_style = paragraph.paragraph_format.element.xpath('w:pPr/w:shd')
+    if paragraph_style and paragraph_style[0].values()[2]  == 'FDE9D9':  # Citation
+        continue
+
     if paragraph_style and paragraph_style[0].values()[2] == 'DDD9C3':  # Stats block background
         current_paragraph_style = 'Stats'
-        if previous_paragraph_style == 'Normal' and current_text.strip():  # Switching to stats block, need to print all we collected before
-            monsters_names_to_text[current_monster_name] = current_text
-            current_text = ''
+        continue
+        # if previous_paragraph_style == 'Normal' and current_text.strip():  # Switching to stats block, need to print all we collected before
+        #     monsters_names_to_text[current_monster_name] = current_text
+        #     current_text = ''
 
-        continue  # do not process stats block
-
-    else: # White background or any other colors
-        current_paragraph_style = 'Normal'
+    # else: # White background or any other colors
+    #     current_paragraph_style = 'Normal'
 
     # if paragraph.style.name == 'Heading 1':
     #     if current_text.strip():
     #         monsters_names_to_text[current_monster_name] = current_text
     #         current_text = ''
 
-    if paragraph.style.name in ('Heading 1', 'Заголовок2Подч') and current_paragraph_style == 'Normal':
+    if paragraph.style.name in ('Heading 1', ):  # New monster starting
+        monsters_names_to_text[current_monster_name] = current_text
         current_monster_name = paragraph.text.strip()
+        current_text = '<h>%s</h>' % current_monster_name
+    elif paragraph.style.name == 'Заголовок2Подч':
         current_text += '<h>%s</h>' % current_monster_name
     else:
         if paragraph.text.strip():
@@ -44,10 +50,13 @@ for paragraph in document.paragraphs:
             current_text += text
         if paragraph.text.strip():
             current_text += '</p>'
+monsters_names_to_text[current_monster_name] = current_text
 
 for monster_name in monsters_names_to_text.keys():
     print(monsters_names_to_text[monster_name])
     print('\n\n\n')
+with open('docxsave.obj', 'wb') as f:
+    f.write(pickle.dumps(monsters_names_to_text))
 
             # paragraph_color = paragraph.paragraph_format.element.xpath('w:pPr/w:shd')[0].values()
             # print(paragraph_color)
