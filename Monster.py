@@ -42,7 +42,11 @@ def translate_to_iso_codes(text):
 def translate_from_iso_codes(text):
     russian_letters = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя'
     for letter in text:
-        letter_code = int.from_bytes(letter.encode('latin-1'), 'big')
+        try:
+            letter_code = int.from_bytes(letter.encode('latin-1'), 'big')
+        except UnicodeEncodeError:
+            continue
+
         if 192 <= letter_code <= 256:
             text = text.replace(letter, russian_letters[letter_code - 192])
         elif letter_code == 184:
@@ -155,10 +159,10 @@ class Monster:
                 return
             except (TypeError, ValueError):
                 translated = translate_from_iso_codes(value)
-                if translated != value:
-                    self.__dict__[key]['ru_value'] = translated
+                if only_roman_chars(translated):
+                    self.__dict__[key]['en_value'] = translated
                 else:
-                    self.__dict__[key]['en_value'] = value
+                    self.__dict__[key]['ru_value'] = value
 
     def find_attribute_by_ru_name(self, ru_name):
         ru_to_en_translation = {v: k for k, v in Monster.attribute_names_translation.items()}
@@ -247,6 +251,35 @@ class Monster:
                     elements_to_return.append(element)
 
         return elements_to_return
+
+    @staticmethod
+    def filter(filters_parameters_dict):
+        result_dict = {}
+        for monster in Monster.registered_monsters.values():
+            match = False
+            for attribute in filters_parameters_dict:
+                if attribute not in monster.__dict__:
+                    continue
+
+                attribute_value = filters_parameters_dict[attribute]
+                monster_value_ru = monster.__dict__[attribute]['ru_value']
+                monster_value_en = monster.__dict__[attribute]['en_value']
+                if monster_value_ru is None:
+                    monster_value_ru = ''
+                if monster_value_en is None:
+                    monster_value_en = ''
+                monster_value_en = str(monster_value_en)
+                monster_value_ru = str(monster_value_ru)
+                if str(attribute_value) in monster_value_ru or str(attribute_value) in monster_value_en:
+                    match = True
+                else:
+                    match = False
+                    continue
+
+            if match:
+                result_dict[len(result_dict) + 1] = monster
+
+        return result_dict
 
 
 if __name__ == '__main__':
