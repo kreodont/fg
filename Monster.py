@@ -71,14 +71,16 @@ def translate_from_iso_codes(text):
 
 
 class Monster:
-    attribute_names_translation = {'name': 'имя', 'charisma': 'хар', 'constitution': 'тел', 'dexterity': 'лов', 'intelligence': 'инт', 'strength': 'сил', 'wisdom': 'мдр', 'ac': 'класс доспеха', 'actions': 'действия', 'alignment': 'мировоззрение', 'cr': 'опасность', 'hd': 'кубики хитов',
+    attribute_names_translation = {'name': 'имя', 'charisma': 'хар', 'constitution': 'тел', 'dexterity': 'лов', 'intelligence': 'инт', 'strength': 'сил', 'wisdom': 'мдр', 'ac': 'класс доспеха', 'actions': 'действия', 'alignment': 'мировоззрение',
+                                   'cr': 'опасность', 'hd': 'кубики хитов',
                                    'hp': 'хиты', 'innatespells': 'врожденные заклинания', 'lairactions': 'действия логова', 'languages': 'языки', 'legendaryactions': 'легендарные действия', 'reactions': 'реакции', 'senses': 'чувства',
                                    'size': 'размер', 'skills': 'умения', 'speed': 'скорость', 'spells': 'заклинания', 'text': 'дополнительный текст', 'traits': 'свойства', 'type': 'тип', 'xp': 'опыт', 'damageresistances': 'сопротивляемость урону',
                                    'conditionimmunities': 'иммунитет к состояниям', 'damagevulnerabilities': 'уязвимость к урону', 'damageimmunities': 'уязвимость к урону', 'savingthrows': 'спасброски'}
 
     mandatory_attributes_list = ['name', 'charisma', 'constitution', 'dexterity', 'intelligence', 'strength', 'wisdom', 'ac', 'hp']
 
-    path_in_xml = {'name': 'name', 'charisma': 'abilities/charisma/score', 'constitution': 'abilities/constitution/score', 'dexterity': 'abilities/dexterity/score', 'intelligence': 'abilities/intelligence/score', 'strength': 'abilities/strength/score',
+    path_in_xml = {'name': 'name', 'charisma': 'abilities/charisma/score', 'constitution': 'abilities/constitution/score', 'dexterity': 'abilities/dexterity/score', 'intelligence': 'abilities/intelligence/score',
+                   'strength': 'abilities/strength/score',
                    'wisdom': 'abilities/wisdom/score', 'ac': 'ac', 'alignment': 'alignment', 'cr': 'cr', 'hp': 'hp', 'hd': 'hd', 'languages': 'languages', 'senses': 'senses', 'size': 'size', 'skills': 'skills', 'speed': 'speed', 'text': 'text',
                    'xp': 'xp', 'damageresistances': 'damageresistances', 'conditionimmunities': 'conditionimmunities', 'damagevulnerabilities': 'damagevulnerabilities', 'innatespells': 'innatespells', 'actions': 'actions', 'reactions': 'reactions',
                    'traits': 'traits', 'spells': 'spells', 'savingthrows': 'savingthrows'}
@@ -186,6 +188,15 @@ class Monster:
 
         return result
 
+    def find_image(self):
+        if self.name['en_value'] in [os.path.basename(f).replace('.jpg', '') for f in glob.glob('images/*.jpg')]:
+            return 'images/%s.jpg' % self.name['en_value']
+
+    def find_token(self):
+        name = self.name['en_value'].replace(' ', '').replace('-', '_').replace("'", '_').lower()
+        if name in [os.path.basename(f).replace('.png', '') for f in glob.glob('tokens/*.png')]:
+            return 'tokens/%s.png' % self.name['en_value']
+
     @staticmethod
     def parse_xml(xml_text):
         if not xml_text:
@@ -286,13 +297,13 @@ if __name__ == '__main__':
     # with open('db.xml') as xml_file:
     #     Monster.parse_xml(xml_file.read())
     Monster.load_from_file()
-    image_files = [os.path.basename(f).replace('.jpg', '') for f in glob.glob('images/*.jpg')]
-    tokens_files = [os.path.basename(f).replace('.png', '') for f in glob.glob('tokens/*.png')]
+    # image_files = [os.path.basename(f).replace('.jpg', '') for f in glob.glob('images/*.jpg')]
+    # tokens_files = [os.path.basename(f).replace('.png', '') for f in glob.glob('tokens/*.png')]
 
-    for m in Monster.registered_monsters.values():
-        ru_name = m.name['ru_value']
-        en_name = m.name['en_value']
-        print(ru_name)
+    # for m in Monster.registered_monsters.values():
+    #     ru_name = m.name['ru_value']
+    #     en_name = m.name['en_value']
+    #     print(ru_name)
 
     # Monster.load_from_file()
     # number = 0
