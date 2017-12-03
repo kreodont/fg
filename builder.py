@@ -1,8 +1,7 @@
 from Monster import Monster
 import os
 import shutil
-# from xml.etree.ElementTree import Element, tostring
-
+from FgXml import FgXml
 dist_folder = './dist'
 fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
 
@@ -33,8 +32,7 @@ def purge_dist_folder():
 
 
 def build_xml():
-    root = Element('root')
-    return root
+    root = FgXml('root', {'version': "3.3", 'release': "8|CoreRPG:3"})
 
 
 if __name__ == '__main__':
