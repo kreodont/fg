@@ -32,7 +32,30 @@ def purge_dist_folder():
 
 
 def build_xml():
-    root = FgXml('root', {'version': "3.3", 'release': "8|CoreRPG:3"})
+    root = FgXml()
+    root.append_under('root', 'library')
+    root.append_under('library', 'rudnd5e2', {'static': 'true'})
+    root.append_under('rudnd5e2', 'categoryname', {'type': 'string'}, value='Rus')
+    root.append_under('rudnd5e2', 'entries')
+    root.append_under('entries', 'imagewindow')
+    root.append_under('imagewindow', 'librarylink', {'type': "windowreference"})
+    root.append_under('librarylink', 'class', value='referenceindexsorted')
+    root.append_under('librarylink', 'recordname', value='lists.imagewindow@RuDnD5e2')
+    root.append_under('entries', 'npc')
+    root.append_under('npc', 'librarylink', {'type': "windowreference"})
+    root.append_under('npc -> librarylink', 'class', value='referenceindexsorted')
+    root.append_under('npc -> librarylink', 'recordname', value='lists.npc@RuDnD5e2')
+
+    root.append_under('root', 'lists')
+    root.append_under('lists', 'imagewindow')
+    root.append_under('lists -> imagewindow', 'name', {'type': "string"}, value='Images &#38; Maps')
+    root.append_under('lists -> imagewindow', 'index')
+    root.append_under('lists', 'npc')
+    root.append_under('lists -> npc', 'name', {'type': "string"}, value='NPCs')
+    root.append_under('lists -> npc', 'index')
+
+    root.append_under('root', 'reference', {'static': "true"})
+    return root
 
 
 if __name__ == '__main__':

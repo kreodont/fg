@@ -4,6 +4,8 @@ import xml.dom.minidom
 
 class FgXml(object):
     def __init__(self, name='root', attributes=None):
+        if attributes is None:
+            attributes = {'version': "3.3", 'release': "8|CoreRPG:3"}
         self.full_paths = {}
         self.root = Element(name)
         for attribute_name, attribute_value in attributes.items():
@@ -12,7 +14,7 @@ class FgXml(object):
 
     def __repr__(self):
         xmlstr = xml.dom.minidom.parseString(tostring(self.root)).toprettyxml(indent="   ", encoding='iso-8859-1')
-        return xmlstr.decode('utf-8')
+        return xmlstr.decode('utf-8').replace('&amp;', '&')
 
     def find_in_full_path(self, path_part):
         matched_paths = []
@@ -48,7 +50,7 @@ class FgXml(object):
             self.full_paths[element_full_path] = element
 
 if __name__ == '__main__':
-    test = FgXml('root', {'version': "3.3", 'release': "8|CoreRPG:3"})
+    test = FgXml()
     test.append_under('root', 'library')
     test.append_under('library', 'rudnd5e2', {'static': 'true'})
     test.append_under('rudnd5e2', 'categoryname', {'type': 'string'}, value='Rus')
