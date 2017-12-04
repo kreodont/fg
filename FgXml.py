@@ -3,6 +3,9 @@ import xml.dom.minidom
 
 
 class FgXml(object):
+    last_monster_number = 0
+    last_picture_number = 0
+
     def __init__(self, name='root', attributes=None):
         if attributes is None:
             attributes = {'version': "3.3", 'release': "8|CoreRPG:3"}
@@ -24,7 +27,7 @@ class FgXml(object):
 
         return matched_paths
 
-    def append_under(self, name_under, name_to_append, attributes=None, under_each=False, value=''):
+    def append_under(self, name_under, name_to_append, attributes=None, under_each=False, value=None):
         if not name_under:
             raise Exception('You should specify the tag name to append under')
 
@@ -41,7 +44,7 @@ class FgXml(object):
         for parent_full_path in parents_full_paths:
             parent = self.full_paths[parent_full_path]
             element = SubElement(parent, name_to_append, attrib=attributes)
-            if value:
+            if value is not None:
                 element.text = value
             element_full_path = parent_full_path + ' -> ' + name_to_append
             if element_full_path in self.full_paths:

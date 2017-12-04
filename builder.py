@@ -55,13 +55,20 @@ def build_xml():
     root.append_under('lists -> npc', 'index')
 
     root.append_under('root', 'reference', {'static': "true"})
+    root.append_under('reference', 'imagedata')
+    root.append_under('imagedata', 'category', {"name": "RUNPC", "baseicon": "0", "decalicon": "0"})
+    root.append_under('reference', 'npcdata')
+    root.append_under('npcdata', 'category', {"name": "Ru", "baseicon": "0", "decalicon": "0"})
     return root
 
 
 if __name__ == '__main__':
-    print(build_xml())
-    # Monster.load_from_file()
-    # monsters_dict = Monster.filter({'name': 'Аа'})
+    xml = build_xml()
+    Monster.load_from_file()
+    monsters_dict = Monster.filter({'name': 'Аа'})
+    aarakokra = list(monsters_dict.values())[0]
+    aarakokra.append_to_xml(xml)
+    print(xml)
     # purge_dist_folder()  # Deleting everything from dist folder
     # create_definition_xml()
     # shutil.copy('thumbnail.png', dist_folder + '/thumbnail.png')

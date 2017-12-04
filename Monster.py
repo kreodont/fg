@@ -4,6 +4,7 @@ import re
 import pickle
 import glob
 import os
+from FgXml import FgXml
 
 latin_letters = {}
 
@@ -196,6 +197,8 @@ class Monster:
         name = self.name['en_value'].replace(' ', '').replace('-', '_').replace("'", '_').lower()
         if name in [os.path.basename(f).replace('.png', '') for f in glob.glob('tokens/*.png')]:
             return 'tokens/%s.png' % self.name['en_value']
+        else:
+            return 'tokens/%s.png' % self.name['en_value'].uppper()
 
     @staticmethod
     def parse_xml(xml_text):
@@ -291,6 +294,43 @@ class Monster:
                 result_dict[len(result_dict) + 1] = monster
 
         return result_dict
+
+    def append_to_xml(self, root):
+        if not isinstance(root, FgXml):
+            return
+
+        FgXml.last_monster_number += 1
+        monster_nubmer = FgXml.last_monster_number
+        monster_index = 'id-%s' % str(monster_nubmer).zfill(5)
+        image_file_name = self.find_image()
+        if image_file_name:
+            FgXml.last_picture_number += 1
+            monster_picture_number = FgXml.last_picture_number
+            monster_picture_index = 'id-%s' % str(monster_picture_number).zfill(5)
+            root.append_under('imagewindow -> index', '%s' % monster_picture_index)
+            root.append_under('imagewindow -> index -> %s' % monster_picture_index, 'listlink', {"type": "windowreference"})
+            root.append_under('imagewindow -> index -> %s -> listlink'% monster_index, 'class', value='imagewindow')
+            root.append_under('imagewindow -> index -> %s -> listlink' % monster_index, 'recordname', value='reference.imagedata.%s@RuDnD5e2' % monster_picture_index)
+            root.append_under('imagewindow -> index -> %s' % monster_picture_index, 'name', {"type": "string"}, value='%s (%s)' % (self.name['ru_value'], self.name['en_value']))
+
+            root.append_under('reference -> imagedata -> category', '%s' % monster_picture_index)
+            root.append_under('reference -> imagedata -> category -> %s' % monster_picture_index, 'image', {'type': "image"})
+            root.append_under('reference -> imagedata -> category -> %s -> image' % monster_picture_index, 'bitmap', value='%s' % image_file_name)
+            root.append_under('reference -> imagedata -> category -> %s' % monster_picture_index, 'isidentified', {'type': "number"}, value='0')
+            root.append_under('reference -> imagedata -> category -> %s' % monster_picture_index, 'name', {'type': "string"}, value='%s (%s)' % (self.name['ru_value'], self.name['en_value']))
+
+        root.append_under('npc -> index', '%s' % monster_index)
+        root.append_under('npc -> index -> %s' % monster_index, 'listlink', {"type": "windowreference"})
+        root.append_under('npc -> index -> %s -> listlink' % monster_index, 'class', value='npc')
+        root.append_under('npc -> index -> %s -> listlink' % monster_index, 'recordname', value='reference.npcdata.%s@RuDnD5e2' % monster_index)
+        root.append_under('npc -> index -> %s' % monster_index, 'name', {"type": "string"}, value='%s (%s)' % (self.name['ru_value'], self.name['en_value']))
+        root.append_under('npcdata -> category', '%s' % monster_index)
+        monster_path = 'npcdata -> category -> %s' % monster_index
+        root.append_under(monster_path, 'abilities')
+        root.append_under('%s -> abilities' % monster_path, 'charisma')
+
+
+
 
 
 if __name__ == '__main__':
