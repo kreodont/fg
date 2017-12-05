@@ -328,9 +328,30 @@ class Monster:
         monster_path = 'npcdata -> category -> %s' % monster_index
         root.append_under(monster_path, 'abilities')
         root.append_under('%s -> abilities' % monster_path, 'charisma')
+        root.append_under('%s -> abilities -> charisma' % monster_path, 'bonus', {'type': "number"}, value=str((self.charisma['en_value'] - 10) // 2))
+        root.append_under('%s -> abilities -> charisma' % monster_path, 'score', {'type': "number"}, value=str(self.charisma['en_value']))
+        root.append_under('%s -> abilities' % monster_path, 'constitution')
+        root.append_under('%s -> abilities -> constitution' % monster_path, 'bonus', {'type': "number"}, value=str((self.constitution['en_value'] - 10) // 2))
+        root.append_under('%s -> abilities -> constitution' % monster_path, 'score', {'type': "number"}, value=str(self.constitution['en_value']))
+        root.append_under('%s -> abilities' % monster_path, 'dexterity')
+        root.append_under('%s -> abilities -> dexterity' % monster_path, 'bonus', {'type': "number"}, value=str((self.dexterity['en_value'] - 10) // 2))
+        root.append_under('%s -> abilities -> dexterity' % monster_path, 'score', {'type': "number"}, value=str(self.dexterity['en_value']))
+        root.append_under('%s -> abilities' % monster_path, 'intelligence')
+        root.append_under('%s -> abilities -> intelligence' % monster_path, 'bonus', {'type': "number"}, value=str((self.intelligence['en_value'] - 10) // 2))
+        root.append_under('%s -> abilities -> intelligence' % monster_path, 'score', {'type': "number"}, value=str(self.intelligence['en_value']))
+        root.append_under('%s -> abilities' % monster_path, 'strength')
+        root.append_under('%s -> abilities -> strength' % monster_path, 'bonus', {'type': "number"}, value=str((self.strength['en_value'] - 10) // 2))
+        root.append_under('%s -> abilities -> strength' % monster_path, 'score', {'type': "number"}, value=str(self.strength['en_value']))
+        root.append_under('%s -> abilities' % monster_path, 'wisdom')
+        root.append_under('%s -> abilities -> wisdom' % monster_path, 'bonus', {'type': "number"}, value=str((self.wisdom['en_value'] - 10) // 2))
+        root.append_under('%s -> abilities -> wisdom' % monster_path, 'score', {'type': "number"}, value=str(self.wisdom['en_value']))
 
-
-
+        root.append_under('%s' % monster_path, 'ac', {'type': "number"}, value=str(self.ac['en_value']))
+        root.append_under('%s' % monster_path, 'actions', value=str(self.actions['ru_value']))
+        root.append_under('%s' % monster_path, 'alignment', {'type': "string"}, value=str(self.alignment['ru_value']))
+        root.append_under('%s' % monster_path, 'cr', {'type': "string"}, value=str(self.cr['en_value']))
+        root.append_under('%s' % monster_path, 'hd', {'type': "string"}, value=str(self.hd['en_value']))
+        root.append_under('%s' % monster_path, 'hp', {'type': "number"}, value=str(self.hp['en_value']))
 
 
 if __name__ == '__main__':
