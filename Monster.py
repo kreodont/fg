@@ -334,10 +334,15 @@ class Monster:
         monster_nubmer = FgXml.last_monster_number
         monster_index = 'id-%s' % str(monster_nubmer).zfill(5)
         image_file_name = self.find_image()
+        token_file_name = self.find_token()
+        additional_text = ''
+        if not token_file_name:
+            token_file_name = 'tokens/%s.png' % self.get('name', ru=False)[0].upper()
         if image_file_name:
             FgXml.last_picture_number += 1
             monster_picture_number = FgXml.last_picture_number
             monster_picture_index = 'id-%s' % str(monster_picture_number).zfill(5)
+            additional_text = '<linklist>\n<link class="imagewindow" recordname="reference.imagedata.%s">%s</link>\n</linklist>\n' % (monster_picture_index, self.get('name', both=True))
             root.append_under('imagewindow -> index', '%s' % monster_picture_index)
             root.append_under('imagewindow -> index -> %s' % monster_picture_index, 'listlink', {"type": "windowreference"})
             root.append_under('imagewindow -> index -> %s -> listlink' % monster_index, 'class', value='imagewindow')
@@ -395,9 +400,14 @@ class Monster:
         root.append_under('%s' % monster_path, 'skills', {'type': "string"}, value=self.get('skills', ru=False))
         root.append_under('%s' % monster_path, 'speed', {'type': "string"}, value=self.get('speed'))
         root.append_under('%s' % monster_path, 'spells', value=self.get('spells'))
-        root.append_under('%s' % monster_path, 'text', {'type': "formattedtext"}, value=self.get('text'))
-        root.append_under('%s' % monster_path, 'token', {'type': "token"}, value='%s@RuDnD5e2' % )
+        additional_text += self.get('text')
+        root.append_under('%s' % monster_path, 'text', {'type': "formattedtext"}, value=additional_text)
+        root.append_under('%s' % monster_path, 'token', {'type': "token"}, value='%s@RuDnD5e2' % token_file_name)
+        root.append_under('%s' % monster_path, 'traits', value=str(self.get('traits')))
+        root.append_under('%s' % monster_path, 'type', {'type': "string"}, value=self.get('type'))
+        root.append_under('%s' % monster_path, 'xp', {'type': "number"}, value=self.get('xp'))
 
+        return image_file_name, token_file_name
 
 
 if __name__ == '__main__':

@@ -52,6 +52,7 @@ class FgXml(object):
 
             self.full_paths[element_full_path] = element
 
+
 if __name__ == '__main__':
     test = FgXml()
     test.append_under('root', 'library')
