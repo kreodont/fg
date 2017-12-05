@@ -19,6 +19,9 @@ def create_definition_xml(name='TestModule', author='Kreodont and Mr_Robot2'):
 
 
 def purge_dist_folder():
+    if not os.path.isdir(dist_folder):
+        os.makedirs(dist_folder)
+
     for the_file in os.listdir(dist_folder):
         file_path = os.path.join(dist_folder, the_file)
 
