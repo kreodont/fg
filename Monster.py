@@ -88,6 +88,10 @@ class Monster:
 
     registered_monsters = {}  # This is needed to correctly assign id- tags for xml
 
+    cr_to_xp = {'0': 10, '1/8': 25, '1/4': 50, '1/2': 100, '1': 200, '2': 450, '3': 700, '4': 1100, '5': 1800, '6': 2300, '7': 2900, '8': 3900, '9': 5000, '10': 5900, '11': 7200, '12': 8400, '13': 10000,
+                '14': 11500, '15': 13000, '16': 15000, '17': 18000, '18': 20000, '19': 22000, '20': 25000, '21': 33000, '22': 41000, '23': 50000, '24': 62000, '25': 75000, '26': 90000, '27': 105000, '28': 120000, '29': 135000, '30': 155000}
+    sizes_dict = {'Large': 'Большой', 'Medium': 'Средний', 'Small': 'Маленький', 'Tiny': 'Крошечный', 'Huge': 'Огромный', 'Gargantuan': 'Громадный'}
+
     def __init__(self, register_number=None):
         self.name = None
         self.charisma = None
@@ -200,6 +204,33 @@ class Monster:
         else:
             return 'tokens/%s.png' % self.name['en_value'].uppper()
 
+    def get(self, attribute_name, ru=True, both=False, encode=True):
+        if attribute_name not in self.__dict__:
+            return ''
+
+        value_dict = self.__getattribute__(attribute_name)
+        ru_value = str(value_dict['ru_value'])
+        en_value = str(value_dict['en_value'])
+        if ru_value == 'None':
+            ru_value = ''
+        if en_value == 'None':
+            en_value = ''
+        if encode:
+            ru_value = translate_to_iso_codes(ru_value)
+        if both:
+            if not ru_value and not en_value:
+                return ''
+            if not ru_value:
+                return en_value
+            if not en_value:
+                return ru_value
+            else:
+                return '%s (%s)' % (ru_value, en_value)
+        if ru:
+            return ru_value
+        else:
+            return en_value
+
     @staticmethod
     def parse_xml(xml_text):
         if not xml_text:
@@ -309,21 +340,21 @@ class Monster:
             monster_picture_index = 'id-%s' % str(monster_picture_number).zfill(5)
             root.append_under('imagewindow -> index', '%s' % monster_picture_index)
             root.append_under('imagewindow -> index -> %s' % monster_picture_index, 'listlink', {"type": "windowreference"})
-            root.append_under('imagewindow -> index -> %s -> listlink'% monster_index, 'class', value='imagewindow')
+            root.append_under('imagewindow -> index -> %s -> listlink' % monster_index, 'class', value='imagewindow')
             root.append_under('imagewindow -> index -> %s -> listlink' % monster_index, 'recordname', value='reference.imagedata.%s@RuDnD5e2' % monster_picture_index)
-            root.append_under('imagewindow -> index -> %s' % monster_picture_index, 'name', {"type": "string"}, value='%s (%s)' % (self.name['ru_value'], self.name['en_value']))
+            root.append_under('imagewindow -> index -> %s' % monster_picture_index, 'name', {"type": "string"}, value=self.get('name', both=True))
 
             root.append_under('reference -> imagedata -> category', '%s' % monster_picture_index)
             root.append_under('reference -> imagedata -> category -> %s' % monster_picture_index, 'image', {'type': "image"})
             root.append_under('reference -> imagedata -> category -> %s -> image' % monster_picture_index, 'bitmap', value='%s' % image_file_name)
             root.append_under('reference -> imagedata -> category -> %s' % monster_picture_index, 'isidentified', {'type': "number"}, value='0')
-            root.append_under('reference -> imagedata -> category -> %s' % monster_picture_index, 'name', {'type': "string"}, value='%s (%s)' % (self.name['ru_value'], self.name['en_value']))
+            root.append_under('reference -> imagedata -> category -> %s' % monster_picture_index, 'name', {'type': "string"}, value=self.get('name', both=True))
 
         root.append_under('npc -> index', '%s' % monster_index)
         root.append_under('npc -> index -> %s' % monster_index, 'listlink', {"type": "windowreference"})
         root.append_under('npc -> index -> %s -> listlink' % monster_index, 'class', value='npc')
         root.append_under('npc -> index -> %s -> listlink' % monster_index, 'recordname', value='reference.npcdata.%s@RuDnD5e2' % monster_index)
-        root.append_under('npc -> index -> %s' % monster_index, 'name', {"type": "string"}, value='%s (%s)' % (self.name['ru_value'], self.name['en_value']))
+        root.append_under('npc -> index -> %s' % monster_index, 'name', {"type": "string"}, value=self.get('name', both=True))
         root.append_under('npcdata -> category', '%s' % monster_index)
         monster_path = 'npcdata -> category -> %s' % monster_index
         root.append_under(monster_path, 'abilities')
@@ -346,12 +377,27 @@ class Monster:
         root.append_under('%s -> abilities -> wisdom' % monster_path, 'bonus', {'type': "number"}, value=str((self.wisdom['en_value'] - 10) // 2))
         root.append_under('%s -> abilities -> wisdom' % monster_path, 'score', {'type': "number"}, value=str(self.wisdom['en_value']))
 
-        root.append_under('%s' % monster_path, 'ac', {'type': "number"}, value=str(self.ac['en_value']))
-        root.append_under('%s' % monster_path, 'actions', value=str(self.actions['ru_value']))
-        root.append_under('%s' % monster_path, 'alignment', {'type': "string"}, value=str(self.alignment['ru_value']))
+        root.append_under('%s' % monster_path, 'ac', {'type': "number"}, value=self.get('ac'))
+        root.append_under('%s' % monster_path, 'actions', value=self.get('actions'))
+        root.append_under('%s' % monster_path, 'alignment', {'type': "string"}, value=self.get('alignment'))
         root.append_under('%s' % monster_path, 'cr', {'type': "string"}, value=str(self.cr['en_value']))
         root.append_under('%s' % monster_path, 'hd', {'type': "string"}, value=str(self.hd['en_value']))
         root.append_under('%s' % monster_path, 'hp', {'type': "number"}, value=str(self.hp['en_value']))
+        root.append_under('%s' % monster_path, 'innatespells', value=str(self.get('innatespells')))
+        root.append_under('%s' % monster_path, 'lairactions', value=str(self.get('lairactions')))
+        root.append_under('%s' % monster_path, 'legendaryactions', value=str(self.get('legendaryactions')))
+        root.append_under('%s' % monster_path, 'reactions', value=str(self.get('reactions')))
+        root.append_under('%s' % monster_path, 'languages', {'type': "string"}, value=self.get('languages'))
+        root.append_under('%s' % monster_path, 'locked', {'type': "number"}, value='1')
+        root.append_under('%s' % monster_path, 'name', {'type': "string"}, value=self.get('name', both=True))
+        root.append_under('%s' % monster_path, 'senses', {'type': "string"}, value=self.get('senses'))
+        root.append_under('%s' % monster_path, 'size', {'type': "string"}, value=self.get('size', both=True))
+        root.append_under('%s' % monster_path, 'skills', {'type': "string"}, value=self.get('skills', ru=False))
+        root.append_under('%s' % monster_path, 'speed', {'type': "string"}, value=self.get('speed'))
+        root.append_under('%s' % monster_path, 'spells', value=self.get('spells'))
+        root.append_under('%s' % monster_path, 'text', {'type': "formattedtext"}, value=self.get('text'))
+        root.append_under('%s' % monster_path, 'token', {'type': "token"}, value='%s@RuDnD5e2' % )
+
 
 
 if __name__ == '__main__':
