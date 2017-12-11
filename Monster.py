@@ -194,15 +194,19 @@ class Monster:
         return result
 
     def find_image(self):
-        if self.name['en_value'] in [os.path.basename(f).replace('.jpg', '') for f in glob.glob('images/*.jpg')]:
-            return 'images/%s.jpg' % self.name['en_value']
+        if self.name['en_value'].replace('/', ' ') in [os.path.basename(f).replace('.jpg', '') for f in glob.glob('images/*.jpg')]:
+            return 'images/%s.jpg' % self.name['en_value'].replace('/', ' ')
 
     def find_token(self):
-        name = self.name['en_value'].replace(' ', '').replace('-', '_').replace("'", '_').lower()
-        if name in [os.path.basename(f).replace('.png', '') for f in glob.glob('tokens/*.png')]:
-            return 'tokens/%s.png' % self.name['en_value']
-        else:
-            return 'tokens/%s.png' % self.name['en_value'].uppper()
+        name = self.name['en_value'].replace(' ', '').replace('-', '_').replace("'", '_').replace('/', '').lower()
+        tokens_filenames = glob.glob('tokens/*.png')
+        matched_filename = None
+        for token_filename in tokens_filenames:
+            if name == token_filename.replace('tokens\\', '').replace('.png', '').replace(' ', '').replace('-', '_').lower():
+                matched_filename = token_filename
+                break
+
+        return matched_filename
 
     def get(self, attribute_name, ru=True, both=False, encode=True):
         if attribute_name not in self.__dict__:
@@ -285,15 +289,19 @@ class Monster:
             Monster.registered_monsters = pickle.loads(f.read())
 
     @staticmethod
-    def find_several_elements_by_value(attribute_name, value):
+    def find_several_elements_by_value(attribute_name, value, strict=False):
         elements_to_return = []
         for element in Monster.registered_monsters.values():
             if attribute_name not in element.__dict__.keys():
                 continue
             else:
                 values_dict = element.__dict__[attribute_name]
-                if value.lower() in values_dict['ru_value'].lower() or value.lower() in values_dict['en_value'].lower():
-                    elements_to_return.append(element)
+                if strict:
+                    if value.lower() in (values_dict['ru_value'].lower(), values_dict['en_value'].lower()):
+                        elements_to_return.append(element)
+                else:
+                    if value.lower() in values_dict['ru_value'].lower() or value.lower() in values_dict['en_value'].lower():
+                        elements_to_return.append(element)
 
         return elements_to_return
 
@@ -346,7 +354,7 @@ class Monster:
             root.append_under('imagewindow -> index', '%s' % monster_picture_index)
             root.append_under('imagewindow -> index -> %s' % monster_picture_index, 'listlink', {"type": "windowreference"})
             root.append_under('imagewindow -> index -> %s -> listlink' % monster_index, 'class', value='imagewindow')
-            root.append_under('imagewindow -> index -> %s -> listlink' % monster_index, 'recordname', value='reference.imagedata.%s@RuDnD5e2' % monster_picture_index)
+            root.append_under('imagewindow -> index -> %s -> listlink' % monster_index, 'recordname', value='reference.imagedata.%s@%s' % (monster_picture_index, root.module_name))
             root.append_under('imagewindow -> index -> %s' % monster_picture_index, 'name', {"type": "string"}, value=self.get('name', both=True))
 
             root.append_under('reference -> imagedata -> category', '%s' % monster_picture_index)
@@ -358,7 +366,7 @@ class Monster:
         root.append_under('npc -> index', '%s' % monster_index)
         root.append_under('npc -> index -> %s' % monster_index, 'listlink', {"type": "windowreference"})
         root.append_under('npc -> index -> %s -> listlink' % monster_index, 'class', value='npc')
-        root.append_under('npc -> index -> %s -> listlink' % monster_index, 'recordname', value='reference.npcdata.%s@RuDnD5e2' % monster_index)
+        root.append_under('npc -> index -> %s -> listlink' % monster_index, 'recordname', value='reference.npcdata.%s@%s' % (monster_index, root.module_name))
         root.append_under('npc -> index -> %s' % monster_index, 'name', {"type": "string"}, value=self.get('name', both=True))
         root.append_under('npcdata -> category', '%s' % monster_index)
         monster_path = 'npcdata -> category -> %s' % monster_index
@@ -402,7 +410,7 @@ class Monster:
         root.append_under('%s' % monster_path, 'spells', value=self.get('spells'))
         additional_text += self.get('text')
         root.append_under('%s' % monster_path, 'text', {'type': "formattedtext"}, value=additional_text)
-        root.append_under('%s' % monster_path, 'token', {'type': "token"}, value='%s@RuDnD5e2' % token_file_name)
+        root.append_under('%s' % monster_path, 'token', {'type': "token"}, value='%s@%s' % (token_file_name, root.module_name))
         root.append_under('%s' % monster_path, 'traits', value=str(self.get('traits')))
         root.append_under('%s' % monster_path, 'type', {'type': "string"}, value=self.get('type'))
         root.append_under('%s' % monster_path, 'xp', {'type': "number"}, value=self.get('xp'))

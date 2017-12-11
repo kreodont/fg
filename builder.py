@@ -3,13 +3,18 @@ import os
 import shutil
 from FgXml import FgXml
 import zipfile
-dist_folder = './dist'
+dist_folder = 'dist'
+module_name = 'TestModule'
 # fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
 fantasy_grounds_folder = '/Users/dima/Dropbox/Fantasy Grounds/modules'
 module_file_name = 'Test2.mod'
+only_asseble_files = False
+
+if dist_folder == 'backup':  # To avoid rewriting backup folder
+    only_asseble_files = True
 
 
-def create_definition_xml(name='TestModule', author='Kreodont and Mr_Robot2'):
+def create_definition_xml(name, author='Kreodont and Mr_Robot2'):
     xml_text = '''<?xml version="1.0" encoding="iso-8859-1"?>
 <root version="3.3" release="8|CoreRPG:3">
     <name>%s</name>
@@ -43,6 +48,7 @@ def zipdir(path, ziph, exceptions=()):
             full_path = os.path.join(root, f).replace('\\', '/')
             if full_path in exceptions:
                 continue
+
             full_path_without_folder_name = '/'.join(full_path.split('/')[1:])
             if full_path_without_folder_name in exceptions:
                 continue
@@ -50,21 +56,23 @@ def zipdir(path, ziph, exceptions=()):
 
 
 def build_xml():
-    root = FgXml()
+    root = FgXml(module_name)
     root.append_under('root', 'library')
-    root.append_under('library', 'rudnd5e2', {'static': 'true'})
-    root.append_under('rudnd5e2', 'name', {'type': 'string'}, value='rudnd5e2')
-    root.append_under('rudnd5e2', 'categoryname', {'type': 'string'}, value='Rus')
-    root.append_under('rudnd5e2', 'entries')
+    root.append_under('library', 'russian_bestiary', {'static': 'true'})
+    root.append_under('russian_bestiary', 'categoryname', {'type': 'string'}, value='Rus')
+    root.append_under('russian_bestiary', 'name', {'type': 'string'}, value='russian_bestiary')
+
+    root.append_under('russian_bestiary', 'entries')
     root.append_under('entries', 'imagewindow')
     root.append_under('imagewindow', 'librarylink', {'type': "windowreference"})
     root.append_under('imagewindow', 'name', {'type': "string"}, value='Images &#38; Maps')
     root.append_under('librarylink', 'class', value='referenceindexsorted')
-    root.append_under('librarylink', 'recordname', value='lists.imagewindow@RuDnD5e2')
+    root.append_under('librarylink', 'recordname', value='lists.imagewindow@%s' % module_name)
     root.append_under('entries', 'npc')
+    root.append_under('npc', 'name', {'type': "string"}, value='NPCs')
     root.append_under('npc', 'librarylink', {'type': "windowreference"})
     root.append_under('npc -> librarylink', 'class', value='referenceindexsorted')
-    root.append_under('npc -> librarylink', 'recordname', value='lists.npc@RuDnD5e2')
+    root.append_under('npc -> librarylink', 'recordname', value='lists.npc@%s' % module_name)
 
     root.append_under('root', 'lists')
     root.append_under('lists', 'imagewindow')
@@ -83,26 +91,36 @@ def build_xml():
 
 
 if __name__ == '__main__':
+    if only_asseble_files:
+        zip_file = zipfile.ZipFile(module_file_name, 'w', zipfile.ZIP_DEFLATED)
+        zipdir(dist_folder, zip_file)
+        zip_file.close()
+        shutil.copy(module_file_name, fantasy_grounds_folder)
+        exit(0)
+
     xml = build_xml()
     Monster.load_from_file()
     purge_dist_folder()  # Deleting everything from dist folder
-    create_definition_xml()
+    create_definition_xml(module_name)
     shutil.copy('thumbnail.png', dist_folder + '/thumbnail.png')
     os.mkdir('%s/tokens' % dist_folder)
     os.mkdir('%s/images' % dist_folder)
-    monsters_dict = Monster.filter({'name': 'Аа'})
-    aarakokra = list(monsters_dict.values())[0]
-    image_file, token_file = aarakokra.append_to_xml(xml)
-    if image_file:
-        shutil.copy(image_file, '%s/%s' % (dist_folder, image_file))
+    # monsters_dict = Monster.filter({'name': 'Аа'})
+    monsters_dict = Monster.registered_monsters
+    for monster in Monster.registered_monsters.values():
+        print(monster.get('name', both=True, encode=False))
+        image_file, token_file = monster.append_to_xml(xml)
+        if image_file:
+            shutil.copy(image_file, '%s/%s' % (dist_folder, image_file))
 
-    shutil.copy(token_file, '%s/%s' % (dist_folder, token_file))
-    common_xml_text = str(xml)
-    with open('%s/common.xml' % dist_folder, 'w') as common_xml:
-        common_xml.write(common_xml_text)
-        common_xml.close()
+        shutil.copy(token_file, '%s/%s' % (dist_folder, token_file))
+        common_xml_text = str(xml)
+        with open('%s/common.xml' % dist_folder, 'w+') as common_xml:
+            common_xml.write(common_xml_text)
+            common_xml.close()
 
     zip_file = zipfile.ZipFile(module_file_name, 'w', zipfile.ZIP_DEFLATED)
     zipdir(dist_folder, zip_file)
+    zip_file.close()
     shutil.copy(module_file_name, fantasy_grounds_folder)
-    print(xml)
+    # print(xml)

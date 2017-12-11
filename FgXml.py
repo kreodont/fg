@@ -6,10 +6,11 @@ class FgXml(object):
     last_monster_number = 0
     last_picture_number = 0
 
-    def __init__(self, name='root', attributes=None):
+    def __init__(self, module_name, name='root', attributes=None):
         if attributes is None:
             attributes = {'version': "3.3", 'release': "8|CoreRPG:3"}
         self.full_paths = {}
+        self.module_name = module_name
         self.root = Element(name)
         for attribute_name, attribute_value in attributes.items():
             self.root.set(attribute_name, attribute_value)
@@ -17,7 +18,7 @@ class FgXml(object):
 
     def __repr__(self):
         xmlstr = xml.dom.minidom.parseString(tostring(self.root)).toprettyxml(indent="   ", encoding='iso-8859-1')
-        return xmlstr.decode('utf-8').replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&quot;', '"')
+        return xmlstr.decode('utf-8', 'ignore').replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&quot;', '"')
 
     def find_in_full_path(self, path_part):
         matched_paths = []
