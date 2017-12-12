@@ -55,7 +55,7 @@ class FgXml(object):
 
 
 if __name__ == '__main__':
-    test = FgXml()
+    test = FgXml('TestModule')
     test.append_under('root', 'library')
     test.append_under('library', 'rudnd5e2', {'static': 'true'})
     test.append_under('rudnd5e2', 'categoryname', {'type': 'string'}, value='Rus')

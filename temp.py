@@ -2,7 +2,7 @@
 import pickle
 import codecs
 from Monster import Monster, translate_to_iso_codes
-Monster.load_from_file()
+# Monster.load_from_file()
 
 # with open('docxsave.obj', 'rb') as f:
 #     docx_monsters_dict = pickle.loads(f.read())
@@ -16,7 +16,14 @@ cr_to_xp = {'0': 10, '1/8': 25, '1/4': 50, '1/2': 100, '1': 200, '2': 450, '3': 
             '14': 11500, '15': 13000, '16': 15000, '17': 18000, '18': 20000,'19': 22000, '20': 25000, '21': 33000, '22': 41000, '23': 50000, '24': 62000, '25': 75000, '26': 90000, '27': 105000, '28': 120000, '29': 135000, '30': 155000}
 sizes_dict = {'Large': 'Большой', 'Medium': 'Средний', 'Small': 'Маленький', 'Tiny': 'Крошечный', 'Huge': 'Огромный', 'Gargantuan': 'Громадный'}
 
-# my_en_names = sorted([monster.name['en_value'].lower() for monster in Monster.registered_monsters.values()])
+with open('db.xml') as xml_file:
+        Monster.parse_xml(xml_file.read())
+
+monsters_dict = Monster.filter({'name': 'Adult Black Dragon'})
+print(monsters_dict)
+
+
+        # my_en_names = sorted([monster.name['en_value'].lower() for monster in Monster.registered_monsters.values()])
 # with codecs.open('phantom_dict.txt', 'r', 'utf_8_sig') as dict_file:
 #     for string in dict_file:
 #         en_name, ru_name = string.split('\t')
@@ -73,7 +80,7 @@ sizes_dict = {'Large': 'Большой', 'Medium': 'Средний', 'Small': 
 #         for matched_monster in xml_monsters:
 #             matched_monster = xml_monsters[0]
 #             matched_monster.text = docx_monsters_dict[docx_monster_name]
-Monster.save_to_file()
+# Monster.save_to_file()
 
     # if docx_monster_name not in Monster.find_several_elements_by_value('name', docx_monster_name):
     #     print('"%s"' % docx_monster_name)

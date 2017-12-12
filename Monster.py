@@ -413,7 +413,7 @@ class Monster:
         root.append_under('%s' % monster_path, 'damageresistances', {'type': "string"}, value=self.get('damageresistances'))
         root.append_under('%s' % monster_path, 'damagevulnerabilities', {'type': "string"}, value=self.get('damagevulnerabilities'))
         root.append_under('%s' % monster_path, 'damageimmunities', {'type': "string"}, value=self.get('damageimmunities'))
-        root.append_under('%s' % monster_path, 'savingthrows', {'type': "string"}, value=self.get('savingthrows'))
+        root.append_under('%s' % monster_path, 'savingthrows', {'type': "string"}, value=self.get('savingthrows', ru=False))
 
         additional_text += self.get('text')
         root.append_under('%s' % monster_path, 'text', {'type': "formattedtext"}, value=additional_text)

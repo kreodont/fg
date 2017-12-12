@@ -8,10 +8,10 @@ module_name = 'TestModule'
 # fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
 fantasy_grounds_folder = '/Users/dima/Dropbox/Fantasy Grounds/modules'
 module_file_name = 'Test2.mod'
-only_asseble_files = False
+only_assemble_files = False
 
 if dist_folder == 'backup':  # To avoid rewriting backup folder
-    only_asseble_files = True
+    only_assemble_files = True
 
 
 def create_definition_xml(name, author='Kreodont and Mr_Robot2'):
@@ -58,7 +58,7 @@ def zipdir(path, ziph, exceptions=()):
 def build_xml():
     root = FgXml(module_name)
     root.append_under('root', 'library')
-    root.append_under('library', 'russian_bestiary', {'static': 'true'})
+    root.append_under('library', 'russian_bestiary')
     root.append_under('russian_bestiary', 'categoryname', {'type': 'string'}, value='Rus')
     root.append_under('russian_bestiary', 'name', {'type': 'string'}, value='russian_bestiary')
 
@@ -82,7 +82,8 @@ def build_xml():
     root.append_under('lists -> npc', 'name', {'type': "string"}, value='NPCs')
     root.append_under('lists -> npc', 'index')
 
-    root.append_under('root', 'reference', {'static': "true"})
+    # root.append_under('root', 'reference', {'static': "true"})
+    root.append_under('root', 'reference')
     root.append_under('reference', 'imagedata')
     root.append_under('imagedata', 'category', {"name": "RUNPC", "baseicon": "0", "decalicon": "0"})
     root.append_under('reference', 'npcdata')
@@ -91,7 +92,7 @@ def build_xml():
 
 
 if __name__ == '__main__':
-    if only_asseble_files:
+    if only_assemble_files:
         zip_file = zipfile.ZipFile(module_file_name, 'w', zipfile.ZIP_DEFLATED)
         zipdir(dist_folder, zip_file)
         zip_file.close()
@@ -105,10 +106,13 @@ if __name__ == '__main__':
     shutil.copy('thumbnail.png', dist_folder + '/thumbnail.png')
     os.mkdir('%s/tokens' % dist_folder)
     os.mkdir('%s/images' % dist_folder)
-    monsters_dict = Monster.filter({'name': 'Black Dragon'})
+    monsters_dict = Monster.filter({'name': 'Adult Red Dragon'})
     # monsters_dict = Monster.registered_monsters
     for monster in monsters_dict.values():
         print(monster.get('name', both=True, encode=False))
+        for string in monster.get('actions', encode=False).split('\\n'):
+            print(string)
+        exit(0)
         image_file, token_file = monster.append_to_xml(xml)
         if image_file:
             shutil.copy(image_file, '%s/%s' % (dist_folder, image_file))
