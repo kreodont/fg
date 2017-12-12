@@ -408,6 +408,13 @@ class Monster:
         root.append_under('%s' % monster_path, 'skills', {'type': "string"}, value=self.get('skills', ru=False))
         root.append_under('%s' % monster_path, 'speed', {'type': "string"}, value=self.get('speed'))
         root.append_under('%s' % monster_path, 'spells', value=self.get('spells'))
+
+        root.append_under('%s' % monster_path, 'conditionimmunities', {'type': "string"}, value=self.get('conditionimmunities'))
+        root.append_under('%s' % monster_path, 'damageresistances', {'type': "string"}, value=self.get('damageresistances'))
+        root.append_under('%s' % monster_path, 'damagevulnerabilities', {'type': "string"}, value=self.get('damagevulnerabilities'))
+        root.append_under('%s' % monster_path, 'damageimmunities', {'type': "string"}, value=self.get('damageimmunities'))
+        root.append_under('%s' % monster_path, 'savingthrows', {'type': "string"}, value=self.get('savingthrows'))
+
         additional_text += self.get('text')
         root.append_under('%s' % monster_path, 'text', {'type': "formattedtext"}, value=additional_text)
         root.append_under('%s' % monster_path, 'token', {'type': "token"}, value='%s@%s' % (token_file_name, root.module_name))

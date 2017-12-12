@@ -105,9 +105,9 @@ if __name__ == '__main__':
     shutil.copy('thumbnail.png', dist_folder + '/thumbnail.png')
     os.mkdir('%s/tokens' % dist_folder)
     os.mkdir('%s/images' % dist_folder)
-    # monsters_dict = Monster.filter({'name': 'Аа'})
-    monsters_dict = Monster.registered_monsters
-    for monster in Monster.registered_monsters.values():
+    monsters_dict = Monster.filter({'name': 'Black Dragon'})
+    # monsters_dict = Monster.registered_monsters
+    for monster in monsters_dict.values():
         print(monster.get('name', both=True, encode=False))
         image_file, token_file = monster.append_to_xml(xml)
         if image_file:
