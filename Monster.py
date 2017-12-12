@@ -46,6 +46,7 @@ def translate_from_iso_codes(text):
         try:
             letter_code = int.from_bytes(letter.encode('latin-1'), 'big')
         except UnicodeEncodeError:
+            print('Error')
             continue
 
         if 192 <= letter_code <= 256:
@@ -54,7 +55,6 @@ def translate_from_iso_codes(text):
             text = text.replace(letter, 'ё')
         elif letter_code == 168:
             text = text.replace(letter, 'Ё')
-
     output_text = text
     letters = re.findall('&#.+?;', text)
     for letter in letters:
@@ -84,15 +84,13 @@ class Monster:
                    'strength': 'abilities/strength/score',
                    'wisdom': 'abilities/wisdom/score', 'ac': 'ac', 'alignment': 'alignment', 'cr': 'cr', 'hp': 'hp', 'hd': 'hd', 'languages': 'languages', 'senses': 'senses', 'size': 'size', 'skills': 'skills', 'speed': 'speed', 'text': 'text',
                    'xp': 'xp', 'damageresistances': 'damageresistances', 'conditionimmunities': 'conditionimmunities', 'damagevulnerabilities': 'damagevulnerabilities', 'innatespells': 'innatespells', 'actions': 'actions', 'reactions': 'reactions',
-                   'traits': 'traits', 'spells': 'spells', 'savingthrows': 'savingthrows'}
-
-    registered_monsters = {}  # This is needed to correctly assign id- tags for xml
+                   'traits': 'traits', 'spells': 'spells', 'savingthrows': 'savingthrows', 'damageimmunities': 'damageimmunities', 'lairactions': 'lairactions', 'legendaryactions': 'legendaryactions', 'type': 'type'}
 
     cr_to_xp = {'0': 10, '1/8': 25, '1/4': 50, '1/2': 100, '1': 200, '2': 450, '3': 700, '4': 1100, '5': 1800, '6': 2300, '7': 2900, '8': 3900, '9': 5000, '10': 5900, '11': 7200, '12': 8400, '13': 10000,
                 '14': 11500, '15': 13000, '16': 15000, '17': 18000, '18': 20000, '19': 22000, '20': 25000, '21': 33000, '22': 41000, '23': 50000, '24': 62000, '25': 75000, '26': 90000, '27': 105000, '28': 120000, '29': 135000, '30': 155000}
     sizes_dict = {'Large': 'Большой', 'Medium': 'Средний', 'Small': 'Маленький', 'Tiny': 'Крошечный', 'Huge': 'Огромный', 'Gargantuan': 'Громадный'}
 
-    def __init__(self, register_number=None):
+    def __init__(self, number=0):
         self.name = None
         self.charisma = None
         self.constitution = None
@@ -125,22 +123,26 @@ class Monster:
         self.damagevulnerabilities = None
         self.damageimmunities = None
         self.savingthrows = None
+        self.number = number
 
-        if register_number:
-            if register_number in Monster.registered_monsters.keys():
-                Monster.registered_monsters[max(Monster.registered_monsters.keys()) + 1] = self
-            else:
-                Monster.registered_monsters[register_number] = self
-        else:
-            if not Monster.registered_monsters:
-                Monster.registered_monsters[1] = self
-            else:
-                last_number = max(Monster.registered_monsters.keys())
-                Monster.registered_monsters[last_number + 1] = self
+        # if register_number:
+        #     if register_number in Monster.registered_monsters.keys():
+        #         Monster.registered_monsters[max(Monster.registered_monsters.keys()) + 1] = self
+        #     else:
+        #         Monster.registered_monsters[register_number] = self
+        # else:
+        #     if not Monster.registered_monsters:
+        #         Monster.registered_monsters[1] = self
+        #     else:
+        #         last_number = max(Monster.registered_monsters.keys())
+        #         Monster.registered_monsters[last_number + 1] = self
 
     def __repr__(self):
         text_to_return = '\n'
         for attribute_name in sorted(self.__dict__.keys()):
+            if attribute_name == 'number':
+                continue
+
             value = self.__dict__[attribute_name]
             if not value:
                 text_to_return += '%s: %s\n' % (attribute_name, value)
@@ -152,6 +154,10 @@ class Monster:
         return text_to_return + '\n'
 
     def __setattr__(self, key, value):
+        if key == 'number':
+            self.__dict__[key] = value
+            return
+
         if value is None:
             self.__dict__[key] = {'ru_name': Monster.attribute_names_translation[key], 'ru_value': None, 'en_value': None}
             return
@@ -169,7 +175,7 @@ class Monster:
                 if only_roman_chars(translated):
                     self.__dict__[key]['en_value'] = translated
                 else:
-                    self.__dict__[key]['ru_value'] = value
+                    self.__dict__[key]['ru_value'] = translated
 
     def find_attribute_by_ru_name(self, ru_name):
         ru_to_en_translation = {v: k for k, v in Monster.attribute_names_translation.items()}
@@ -240,6 +246,7 @@ class Monster:
         if not xml_text:
             raise Exception('Empty XML provided')
 
+        monsters_dict = {}
         root_element = Et.fromstring(xml_text)
         npc_element = root_element.find('npc')
         if not npc_element:
@@ -251,7 +258,7 @@ class Monster:
 
         xml_monsters = category_element.findall('*')
         for xml_monster in xml_monsters:
-            monster = Monster(register_number=int(xml_monster.tag.replace('id-', '')))
+            monster = Monster(number=int(xml_monster.tag.replace('id-', '')))
             for attribute in monster.__dict__.keys():
                 if attribute in Monster.path_in_xml.keys():
                     xml_path = Monster.path_in_xml[attribute]
@@ -278,20 +285,25 @@ class Monster:
 
                         monster.__setattr__(attribute, text)
 
-    @staticmethod
-    def save_to_file():
-        with open('monsters.obj', 'wb') as f:
-            f.write(pickle.dumps(Monster.registered_monsters))
+            monsters_dict[monster.name['en_value']] = monster
+
+        return monsters_dict
 
     @staticmethod
-    def load_from_file():
-        with open('monsters.obj', 'rb') as f:
-            Monster.registered_monsters = pickle.loads(f.read())
+    def save_to_file(dictionary_to_save, filename='monsters.obj'):
+        with open(filename, 'wb') as f:
+            f.write(pickle.dumps(dictionary_to_save))
 
     @staticmethod
-    def find_several_elements_by_value(attribute_name, value, strict=False):
+    def load_from_file(filename='monsters.obj'):
+        with open(filename, 'rb') as f:
+            loaded_monsters = pickle.loads(f.read())
+            return loaded_monsters
+
+    @staticmethod
+    def find_several_elements_by_value(monsters_dict, attribute_name, value, strict=False):
         elements_to_return = []
-        for element in Monster.registered_monsters.values():
+        for element in monsters_dict.values():
             if attribute_name not in element.__dict__.keys():
                 continue
             else:
@@ -306,9 +318,9 @@ class Monster:
         return elements_to_return
 
     @staticmethod
-    def filter(filters_parameters_dict):
+    def filter(monsters_dict, filters_parameters_dict):
         result_dict = {}
-        for monster in Monster.registered_monsters.values():
+        for monster in monsters_dict.values():
             match = False
             for attribute in filters_parameters_dict:
                 if attribute not in monster.__dict__:
@@ -404,7 +416,7 @@ class Monster:
         root.append_under('%s' % monster_path, 'locked', {'type': "number"}, value='1')
         root.append_under('%s' % monster_path, 'name', {'type': "string"}, value=self.get('name', both=True))
         root.append_under('%s' % monster_path, 'senses', {'type': "string"}, value=self.get('senses'))
-        root.append_under('%s' % monster_path, 'size', {'type': "string"}, value=self.get('size', both=True))
+        root.append_under('%s' % monster_path, 'size', {'type': "string"}, value=self.get('size', ru=False))
         root.append_under('%s' % monster_path, 'skills', {'type': "string"}, value=self.get('skills', ru=False))
         root.append_under('%s' % monster_path, 'speed', {'type': "string"}, value=self.get('speed'))
         root.append_under('%s' % monster_path, 'spells', value=self.get('spells'))
@@ -428,18 +440,13 @@ class Monster:
 if __name__ == '__main__':
     # with open('db.xml') as xml_file:
     #     Monster.parse_xml(xml_file.read())
-    Monster.load_from_file()
+    all_monsters = Monster.load_from_file()
     # image_files = [os.path.basename(f).replace('.jpg', '') for f in glob.glob('images/*.jpg')]
     # tokens_files = [os.path.basename(f).replace('.png', '') for f in glob.glob('tokens/*.png')]
 
-    # for m in Monster.registered_monsters.values():
-    #     ru_name = m.name['ru_value']
-    #     en_name = m.name['en_value']
-    #     print(ru_name)
-
     # Monster.load_from_file()
     # number = 0
-    # for m in Monster.registered_monsters.values():
+    # for m in all_monsters.values():
     #     name = m.name['en_value'].replace(' ', '').replace('-', '_').replace("'", '_').lower()
     #     if name not in tokens_files:
     #         print('%s.png' % name)
@@ -452,4 +459,4 @@ if __name__ == '__main__':
     #         image_files.remove(name)
     # print(image_files)
     # print(number)
-    Monster.save_to_file()
+    Monster.save_to_file(all_monsters)

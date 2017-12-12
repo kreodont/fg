@@ -100,19 +100,16 @@ if __name__ == '__main__':
         exit(0)
 
     xml = build_xml()
-    Monster.load_from_file()
+    all_monsters = Monster.load_from_file()
     purge_dist_folder()  # Deleting everything from dist folder
     create_definition_xml(module_name)
     shutil.copy('thumbnail.png', dist_folder + '/thumbnail.png')
     os.mkdir('%s/tokens' % dist_folder)
     os.mkdir('%s/images' % dist_folder)
-    monsters_dict = Monster.filter({'name': 'Adult Red Dragon'})
-    # monsters_dict = Monster.registered_monsters
+    # monsters_dict = Monster.filter(all_monsters, {'name': 'Adult Red Dragon'})
+    monsters_dict = all_monsters
     for monster in monsters_dict.values():
         print(monster.get('name', both=True, encode=False))
-        for string in monster.get('actions', encode=False).split('\\n'):
-            print(string)
-        exit(0)
         image_file, token_file = monster.append_to_xml(xml)
         if image_file:
             shutil.copy(image_file, '%s/%s' % (dist_folder, image_file))

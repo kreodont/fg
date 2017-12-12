@@ -12,16 +12,39 @@ from Monster import Monster, translate_to_iso_codes
 #     f.write(pickle.dumps(docx_monsters_dict))
 # print(docx_monsters_dict['Ангелы'])
 # exit(0)
-cr_to_xp = {'0': 10, '1/8': 25, '1/4': 50, '1/2': 100, '1': 200, '2': 450, '3': 700, '4': 1100, '5': 1800, '6': 2300, '7': 2900, '8': 3900,'9': 5000, '10': 5900, '11': 7200, '12': 8400, '13': 10000,
-            '14': 11500, '15': 13000, '16': 15000, '17': 18000, '18': 20000,'19': 22000, '20': 25000, '21': 33000, '22': 41000, '23': 50000, '24': 62000, '25': 75000, '26': 90000, '27': 105000, '28': 120000, '29': 135000, '30': 155000}
-sizes_dict = {'Large': 'Большой', 'Medium': 'Средний', 'Small': 'Маленький', 'Tiny': 'Крошечный', 'Huge': 'Огромный', 'Gargantuan': 'Громадный'}
+# cr_to_xp = {'0': 10, '1/8': 25, '1/4': 50, '1/2': 100, '1': 200, '2': 450, '3': 700, '4': 1100, '5': 1800, '6': 2300, '7': 2900, '8': 3900,'9': 5000, '10': 5900, '11': 7200, '12': 8400, '13': 10000,
+#             '14': 11500, '15': 13000, '16': 15000, '17': 18000, '18': 20000,'19': 22000, '20': 25000, '21': 33000, '22': 41000, '23': 50000, '24': 62000, '25': 75000, '26': 90000, '27': 105000, '28': 120000, '29': 135000, '30': 155000}
+# sizes_dict = {'Large': 'Большой', 'Medium': 'Средний', 'Small': 'Маленький', 'Tiny': 'Крошечный', 'Huge': 'Огромный', 'Gargantuan': 'Громадный'}
+#
+# with open('db.xml') as xml_file:
+#         monsters_renew = Monster.parse_xml(xml_file.read())
+monsters_renew = Monster.load_from_file('monsters_review.obj')
+current_monsters = Monster.load_from_file('monsters.obj')
+for monster_name in monsters_renew.copy():
+    # print(monsters_renew[monster_name].get('savingthrows', encode=False))
+    if not current_monsters[monster_name].savingthrows['ru_value'] and monsters_renew[monster_name].savingthrows['ru_value']:
+        current_monsters[monster_name].savingthrows['ru_value'] = monsters_renew[monster_name].savingthrows['ru_value']
+        print(monster_name)
 
-with open('db.xml') as xml_file:
-        Monster.parse_xml(xml_file.read())
+Monster.save_to_file(monsters_renew, filename='monsters_review.obj')
+Monster.save_to_file(current_monsters)
+# print(monsters_renew['Adult Black Dragon'].legendaryactions)
+# print(current_monsters['Adult Black Dragon'].legendaryactions)
+# for monster_number in current_monsters:
+#     monster = current_monsters[monster_number]
+#     monster.number = monster_number
+#     eng_name = monster.name['en_value']
+#     new_dict[eng_name] = monster
+# Monster.save_to_file(new_dict)
+# Monster.save_to_file(monsters_renew, 'monsters_review.obj')
 
-monsters_dict = Monster.filter({'name': 'Adult Black Dragon'})
-print(monsters_dict)
+# monsters_dict = Monster.filter({'name': 'Adult Black Dragon'})
+# print(monsters_dict)
 
+# monster = Monster()
+# for attribute in monster.__dict__:
+#     if attribute not in Monster.path_in_xml:
+#         print(attribute)
 
         # my_en_names = sorted([monster.name['en_value'].lower() for monster in Monster.registered_monsters.values()])
 # with codecs.open('phantom_dict.txt', 'r', 'utf_8_sig') as dict_file:
