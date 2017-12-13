@@ -18,16 +18,26 @@ from Monster import Monster, translate_to_iso_codes
 #
 # with open('db.xml') as xml_file:
 #         monsters_renew = Monster.parse_xml(xml_file.read())
-monsters_renew = Monster.load_from_file('monsters_review.obj')
+# monsters_renew = Monster.load_from_file('monsters_review.obj')
 current_monsters = Monster.load_from_file('monsters.obj')
-for monster_name in monsters_renew.copy():
-    # print(monsters_renew[monster_name].get('savingthrows', encode=False))
-    if not current_monsters[monster_name].savingthrows['ru_value'] and monsters_renew[monster_name].savingthrows['ru_value']:
-        current_monsters[monster_name].savingthrows['ru_value'] = monsters_renew[monster_name].savingthrows['ru_value']
-        print(monster_name)
 
-Monster.save_to_file(monsters_renew, filename='monsters_review.obj')
+creodont = current_monsters['Creodonta']
+creodont.text = '<p>Креодонты были господствующими хищными видами в раннем третичном периоде, 55—35 млн лет назад. Несмотря на внешнее сходство с современными хищниками, в настоящее время предполагается, что креодонты не были предками хищников, а имели с ними общего предка, ' \
+                'не оставив потомков среди современных млекопитающих. Основное отличие от современных хищников состояло в ином строении челюсти, из-за чего она была малоподвижной: креодонты, подобно крокодилам, умели перекусывать жертву, но не могли её обгладывать. Хуже развит (по сравнению с ' \
+                'хищниками) был и мозг креодонтов.</p>'
+print(creodont)
+
 Monster.save_to_file(current_monsters)
+
+# print(sorted(current_monsters.keys()))
+# for monster_name in monsters_renew.copy():
+#     # print(monsters_renew[monster_name].get('savingthrows', encode=False))
+#     if not current_monsters[monster_name].savingthrows['ru_value'] and monsters_renew[monster_name].savingthrows['ru_value']:
+#         current_monsters[monster_name].savingthrows['ru_value'] = monsters_renew[monster_name].savingthrows['ru_value']
+#         print(monster_name)
+
+# Monster.save_to_file(monsters_renew, filename='monsters_review.obj')
+# Monster.save_to_file(current_monsters)
 # print(monsters_renew['Adult Black Dragon'].legendaryactions)
 # print(current_monsters['Adult Black Dragon'].legendaryactions)
 # for monster_number in current_monsters:

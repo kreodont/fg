@@ -44,9 +44,9 @@ def translate_from_iso_codes(text):
     russian_letters = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя'
     for letter in text:
         try:
-            letter_code = int.from_bytes(letter.encode('latin-1'), 'big')
-        except UnicodeEncodeError:
-            print('Error')
+            letter_code = int.from_bytes(letter.encode('latin-1'), 'big')  # this is decoding from FG format
+        except UnicodeEncodeError as e:
+            # print('Error: %s' % e)
             continue
 
         if 192 <= letter_code <= 256:
@@ -208,7 +208,7 @@ class Monster:
         tokens_filenames = glob.glob('tokens/*.png')
         matched_filename = None
         for token_filename in tokens_filenames:
-            if name == token_filename.replace('tokens\\', '').replace('.png', '').replace(' ', '').replace('-', '_').lower():
+            if name == token_filename.replace('tokens\\', '').replace('tokens/', '').replace('.png', '').replace(' ', '').replace('-', '_').lower():
                 matched_filename = token_filename
                 break
 
@@ -351,8 +351,8 @@ class Monster:
             return
 
         FgXml.last_monster_number += 1
-        monster_nubmer = FgXml.last_monster_number
-        monster_index = 'id-%s' % str(monster_nubmer).zfill(5)
+        # monster_nubmer = FgXml.last_monster_number
+        monster_index = 'id-%s' % str(FgXml.last_monster_number).zfill(5)
         image_file_name = self.find_image()
         token_file_name = self.find_token()
         additional_text = ''
@@ -365,8 +365,8 @@ class Monster:
             additional_text = '<linklist>\n<link class="imagewindow" recordname="reference.imagedata.%s">%s</link>\n</linklist>\n' % (monster_picture_index, self.get('name', both=True))
             root.append_under('imagewindow -> index', '%s' % monster_picture_index)
             root.append_under('imagewindow -> index -> %s' % monster_picture_index, 'listlink', {"type": "windowreference"})
-            root.append_under('imagewindow -> index -> %s -> listlink' % monster_index, 'class', value='imagewindow')
-            root.append_under('imagewindow -> index -> %s -> listlink' % monster_index, 'recordname', value='reference.imagedata.%s@%s' % (monster_picture_index, root.module_name))
+            root.append_under('imagewindow -> index -> %s -> listlink' % monster_picture_index, 'class', value='imagewindow')
+            root.append_under('imagewindow -> index -> %s -> listlink' % monster_picture_index, 'recordname', value='reference.imagedata.%s@%s' % (monster_picture_index, root.module_name))
             root.append_under('imagewindow -> index -> %s' % monster_picture_index, 'name', {"type": "string"}, value=self.get('name', both=True))
 
             root.append_under('reference -> imagedata -> category', '%s' % monster_picture_index)
