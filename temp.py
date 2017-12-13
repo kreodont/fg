@@ -21,11 +21,20 @@ from Monster import Monster, translate_to_iso_codes
 # monsters_renew = Monster.load_from_file('monsters_review.obj')
 current_monsters = Monster.load_from_file('monsters.obj')
 
-creodont = current_monsters['Creodonta']
-creodont.text = '<p>Креодонты были господствующими хищными видами в раннем третичном периоде, 55—35 млн лет назад. Несмотря на внешнее сходство с современными хищниками, в настоящее время предполагается, что креодонты не были предками хищников, а имели с ними общего предка, ' \
-                'не оставив потомков среди современных млекопитающих. Основное отличие от современных хищников состояло в ином строении челюсти, из-за чего она была малоподвижной: креодонты, подобно крокодилам, умели перекусывать жертву, но не могли её обгладывать. Хуже развит (по сравнению с ' \
-                'хищниками) был и мозг креодонтов.</p>'
-print(creodont)
+eng_monsters = Monster.load_from_file('eng_monsters.obj')
+
+for en_monster_name in eng_monsters:
+    en_monster = eng_monsters[en_monster_name]
+    if en_monster_name.lower() not in current_monsters:
+        continue
+    ru_monster = current_monsters[en_monster_name.lower()]
+    en_value = en_monster.damageimmunities['en_value']
+    ru_monster.damageimmunities['en_value'] = en_value
+#   print(en_monster.get('speed', ru=False))
+# Monster.save_to_file(eng_monsters, 'eng_monsters.obj')
+# for my_monster_name in sorted(current_monsters):
+#     if my_monster_name not in eng_monsters:
+#         print(my_monster_name)
 
 Monster.save_to_file(current_monsters)
 
