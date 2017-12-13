@@ -21,7 +21,7 @@ with open('docxsave.obj', 'rb') as f:
 # monsters_renew = Monster.load_from_file('monsters_review.obj')
 current_monsters = Monster.load_from_file('monsters.obj')
 #
-# eng_monsters = Monster.load_from_file('eng_monsters.obj')
+eng_monsters = Monster.load_from_file('eng_monsters.obj')
 # # for old_name in eng_monsters.copy():
 # #     eng_monsters[old_name.lower()] = eng_monsters[old_name]
 # #     del eng_monsters[old_name]
@@ -36,13 +36,14 @@ current_monsters = Monster.load_from_file('monsters.obj')
 #     if en_name not in current_monsters:
 #         print(en_name)
 # #
-# for en_monster_name in eng_monsters:
-#     en_monster = eng_monsters[en_monster_name]
-#     if en_monster_name.lower() not in current_monsters:
-#         continue
-#     ru_monster = current_monsters[en_monster_name.lower()]
-#     en_value = en_monster.damageimmunities['en_value']
-#     ru_monster.damageimmunities['en_value'] = en_value
+for en_monster_name in eng_monsters:
+    en_monster = eng_monsters[en_monster_name]
+    if en_monster_name.lower() not in current_monsters:
+        continue
+    ru_monster = current_monsters[en_monster_name.lower()]
+    en_value = en_monster.damageimmunities['type']
+    print(en_value)
+    # ru_monster.damageimmunities['en_value'] = en_value
 #   print(en_monster.get('speed', ru=False))
 # Monster.save_to_file(eng_monsters, 'eng_monsters.obj')
 # for my_monster_name in sorted(current_monsters):
@@ -120,47 +121,41 @@ current_monsters = Monster.load_from_file('monsters.obj')
     # print(hp, hd)
 
 
-
-# del docx_monsters_dict['Бафомет']
+#
+# del docx_monsters_dict['Прочие демонические повелители']
 # with open('docxsave.obj', 'wb') as f:
 #     f.write(pickle.dumps(docx_monsters_dict))
 #     f.close()
 # exit(0)
-
-
-for docx_monster_name in sorted(docx_monsters_dict.keys()):
-    xml_monsters = Monster.find_several_elements_by_value(current_monsters, 'name', docx_monster_name)
-    if len(xml_monsters) == 0:
-        print(docx_monster_name)
-        print('\n\n')
-        ru_names = sorted([m.name['ru_value'] for m in current_monsters.values()])
-        print(ru_names)
-        exit(0)
-    else:
-        print(docx_monster_name)
-        print([x.name['ru_value'] for x in xml_monsters])
-        print('\n\n')
-
-doc_name = 'Ангелы'
-ru_names = ['Дэв', 'Планетар']
-for ru_name in ru_names:
-    monster = Monster.find_several_elements_by_value(current_monsters, 'name', ru_name)[0]
-    current_monsters[monster.name['en_value'].lower()].text['ru_value'] += docx_monsters_dict[doc_name]
-
-del docx_monsters_dict[doc_name]
-# print(sorted(current_monsters.keys()))
-
+#
 # for docx_monster_name in sorted(docx_monsters_dict.keys()):
 #     xml_monsters = Monster.find_several_elements_by_value(current_monsters, 'name', docx_monster_name)
 #     if len(xml_monsters) == 0:
 #         print(docx_monster_name)
-
+#         print('\n\n')
+#         ru_names = sorted([m.name['ru_value'] for m in current_monsters.values()])
+#         print(ru_names)
+#         print('\n\n')
+#         print(docx_monster_name)
+#         exit(0)
 #     else:
-#         for matched_monster in xml_monsters:
-#             matched_monster = xml_monsters[0]
-#             matched_monster.text = docx_monsters_dict[docx_monster_name]
+#         print(docx_monster_name)
+#         print([x.name['ru_value'] for x in xml_monsters])
+#         print('\n\n')
+# exit(0)
+# doc_name = 'Юголоты'
+# ru_names = ['Арканалот', 'Ультролот', 'Меззолот', 'Никалот']
+# for ru_name in ru_names:
+#     print(ru_name)
+#     monster = Monster.find_several_elements_by_value(current_monsters, 'name', ru_name)[0]
+#     if not current_monsters[monster.name['en_value'].lower()].text['ru_value']:
+#         current_monsters[monster.name['en_value'].lower()].text['ru_value'] = docx_monsters_dict[doc_name]
+#     else:
+#         current_monsters[monster.name['en_value'].lower()].text['ru_value'] += docx_monsters_dict[doc_name]
+#
+# del docx_monsters_dict[doc_name]
 
 Monster.save_to_file(current_monsters)
-with open('docxsave.obj', 'wb') as f:
-    f.write(pickle.dumps(docx_monsters_dict))
-    f.close()
+# with open('docxsave.obj', 'wb') as f:
+#     f.write(pickle.dumps(docx_monsters_dict))
+#     f.close()

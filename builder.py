@@ -5,8 +5,8 @@ from FgXml import FgXml
 import zipfile
 dist_folder = 'dist'
 module_name = 'TestModule'
-# fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
-fantasy_grounds_folder = '/Users/dima/Dropbox/Fantasy Grounds/modules'
+fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
+# fantasy_grounds_folder = '/Users/dima/Dropbox/Fantasy Grounds/modules'
 module_file_name = 'Test2.mod'
 only_assemble_files = False
 
@@ -106,9 +106,10 @@ if __name__ == '__main__':
     shutil.copy('thumbnail.png', dist_folder + '/thumbnail.png')
     os.mkdir('%s/tokens' % dist_folder)
     os.mkdir('%s/images' % dist_folder)
-    monsters_dict = Monster.filter(all_monsters, {'name': 'Deva'})
-    # monsters_dict = all_monsters
-    for monster in monsters_dict.values():
+    # monsters_dict = Monster.filter(all_monsters, {'name': 'Deva'})
+    monsters_dict = all_monsters
+    for monster_name in sorted(monsters_dict):
+        monster = monsters_dict[monster_name]
         print(monster.get('name', both=True, encode=False))
         image_file, token_file = monster.append_to_xml(xml)
         if image_file:
