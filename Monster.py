@@ -415,7 +415,7 @@ class Monster:
         root.append_under('%s' % monster_path, 'languages', {'type': "string"}, value=self.get('languages', ru=False))
         root.append_under('%s' % monster_path, 'locked', {'type': "number"}, value='1')
         root.append_under('%s' % monster_path, 'name', {'type': "string"}, value=self.get('name', both=True))
-        root.append_under('%s' % monster_path, 'senses', {'type': "string"}, value=self.get('senses'))
+        root.append_under('%s' % monster_path, 'senses', {'type': "string"}, value=self.get('senses', ru=False))
         root.append_under('%s' % monster_path, 'size', {'type': "string"}, value=self.get('size', ru=False))
         root.append_under('%s' % monster_path, 'skills', {'type': "string"}, value=self.get('skills', ru=False))
         root.append_under('%s' % monster_path, 'speed', {'type': "string"}, value=self.get('speed', ru=False))
@@ -431,7 +431,7 @@ class Monster:
         root.append_under('%s' % monster_path, 'text', {'type': "formattedtext"}, value=additional_text)
         root.append_under('%s' % monster_path, 'token', {'type': "token"}, value='%s@%s' % (token_file_name, root.module_name))
         root.append_under('%s' % monster_path, 'traits', value=str(self.get('traits')))
-        root.append_under('%s' % monster_path, 'type', {'type': "string"}, value=self.get('type'))
+        root.append_under('%s' % monster_path, 'type', {'type': "string"}, value=self.get('type', ru=False))
         root.append_under('%s' % monster_path, 'xp', {'type': "number"}, value=self.get('xp'))
 
         return image_file_name, token_file_name
