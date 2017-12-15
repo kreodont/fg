@@ -4,17 +4,17 @@ import shutil
 from FgXml import FgXml
 import zipfile
 dist_folder = 'dist'
-module_name = 'TestModule'
+module_name = 'RussianBestiary'
 # fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
 fantasy_grounds_folder = '/Users/dima/Dropbox/Fantasy Grounds/modules'
-module_file_name = 'Test2.mod'
+module_file_name = 'RussianBestiary.mod'
 only_assemble_files = False
 
 if dist_folder == 'backup':  # To avoid rewriting backup folder
     only_assemble_files = True
 
 
-def create_definition_xml(name, author='Kreodont and Yujin'):
+def create_definition_xml(name, author='KY'):
     xml_text = '''<?xml version="1.0" encoding="iso-8859-1"?>
 <root version="3.3" release="8|CoreRPG:3">
     <name>%s</name>
