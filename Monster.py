@@ -285,12 +285,12 @@ class Monster:
 
                         monster.__setattr__(attribute, text)
 
-            monsters_dict[monster.name['en_value']] = monster
+            monsters_dict[monster.name['en_value'].lower()] = monster
 
         return monsters_dict
 
     @staticmethod
-    def save_to_file(dictionary_to_save, filename='monsters.obj'):
+    def save_to_file(dictionary_to_save, filename):
         with open(filename, 'wb') as f:
             f.write(pickle.dumps(dictionary_to_save))
 

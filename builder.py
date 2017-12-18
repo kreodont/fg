@@ -8,6 +8,9 @@ module_name = 'RussianBestiary'
 # fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
 fantasy_grounds_folder = '/Users/dima/Dropbox/Fantasy Grounds/modules'
 module_file_name = 'RussianBestiary.mod'
+module_name = 'RussianBestiary'
+fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
+# fantasy_grounds_folder = '/Users/dima/Dropbox/Fantasy Grounds/modules'
 only_assemble_files = False
 
 if dist_folder == 'backup':  # To avoid rewriting backup folder
