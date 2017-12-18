@@ -2,6 +2,7 @@
 import pickle
 import codecs
 from Monster import Monster
+from ActionsAndTraits import ActionsAndTraits
 
 with open('docxsave.obj', 'rb') as f:
     docx_monsters_dict = pickle.loads(f.read())
@@ -21,11 +22,19 @@ with open('docxsave.obj', 'rb') as f:
 # monsters_renew = Monster.load_from_file('monsters_review.obj')
 # current_monsters = Monster.load_from_file('monsters.obj')
 
-#
+updated_monsters = Monster.parse_xml(open('changes.xml').read().replace('D&D', 'DnD'))
+# updated_monsters = Monster.load_from_file('updated_monsters.obj')
+vampire = updated_monsters['vampire']  # type: Monster
+print(vampire.name)
+# for class_name in ('traits', 'actions', 'legendaryactions'):
+#     vampire = updated_monsters['vampire']  # type: Monster
+#     vampire.__dict__[class_name] = ActionsAndTraits.parse_xml(vampire.get(class_name, encode=False), class_name)
 
-current_monsters = Monster.load_from_file('monsters.obj')
+Monster.save_to_file(updated_monsters, 'updated_monsters.obj')
+
+# current_monsters = Monster.load_from_file('monsters.obj')
 # eng_monsters = Monster.parse_xml(open('db_1.xml').read())
-eng_monsters = Monster.load_from_file('eng_monsters.obj')
+# eng_monsters = Monster.load_from_file('eng_monsters.obj')
 # # for old_name in eng_monsters.copy():
 # #     eng_monsters[old_name.lower()] = eng_monsters[old_name]
 # #     del eng_monsters[old_name]
@@ -52,14 +61,14 @@ eng_monsters = Monster.load_from_file('eng_monsters.obj')
 # if current_monsters['deva'].legendaryactions['ru_value']:
 #     current_monsters['deva'].legendaryactions['ru_value'] = current_monsters['deva'].legendaryactions['ru_value'].replace('\n', '\n\n')
 
-for en_monster_name in eng_monsters:
-    en_monster = eng_monsters[en_monster_name]
-    if en_monster_name.lower() not in current_monsters:
-        continue
-    ru_monster = current_monsters[en_monster_name.lower()]
-    en_value = en_monster.savingthrows['en_value']
-    print(en_value)
-    ru_monster.savingthrows['en_value'] = en_value
+# for en_monster_name in eng_monsters:
+#     en_monster = eng_monsters[en_monster_name]
+#     if en_monster_name.lower() not in current_monsters:
+#         continue
+#     ru_monster = current_monsters[en_monster_name.lower()]
+#     en_value = en_monster.savingthrows['en_value']
+#     print(en_value)
+#     ru_monster.savingthrows['en_value'] = en_value
 #   print(en_monster.get('speed', ru=False))
 # Monster.save_to_file(eng_monsters, 'eng_monsters.obj')
 # for my_monster_name in sorted(current_monsters):
@@ -171,7 +180,7 @@ for en_monster_name in eng_monsters:
 #
 # del docx_monsters_dict[doc_name]
 
-Monster.save_to_file(current_monsters, 'monsters.obj')
+# Monster.save_to_file(current_monsters, 'monsters.obj')
 # with open('docxsave.obj', 'wb') as f:
 #     f.write(pickle.dumps(docx_monsters_dict))
 #     f.close()

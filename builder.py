@@ -5,11 +5,11 @@ from FgXml import FgXml
 import zipfile
 dist_folder = 'dist'
 module_name = 'RussianBestiary'
-# fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
-fantasy_grounds_folder = '/Users/dima/Dropbox/Fantasy Grounds/modules'
+
+
 module_file_name = 'RussianBestiary.mod'
-module_name = 'RussianBestiary'
 fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
+
 # fantasy_grounds_folder = '/Users/dima/Dropbox/Fantasy Grounds/modules'
 only_assemble_files = False
 
@@ -103,14 +103,14 @@ if __name__ == '__main__':
         exit(0)
 
     xml = build_xml()
-    all_monsters = Monster.load_from_file()
+    all_monsters = Monster.load_from_file('updated_monsters.obj')
     purge_dist_folder()  # Deleting everything from dist folder
     create_definition_xml(module_name)
     shutil.copy('thumbnail.png', dist_folder + '/thumbnail.png')
     os.mkdir('%s/tokens' % dist_folder)
     os.mkdir('%s/images' % dist_folder)
-    # monsters_dict = Monster.filter(all_monsters, {'name': 'Deva'})
-    monsters_dict = all_monsters
+    monsters_dict = Monster.filter(all_monsters, {'name': 'Vampire'})
+    # monsters_dict = all_monsters
     for monster_name in sorted(monsters_dict):
         monster = monsters_dict[monster_name]
         print(monster.get('name', both=True, encode=False))

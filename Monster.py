@@ -6,17 +6,16 @@ import glob
 import os
 from FgXml import FgXml
 
-latin_letters = {}
-
-
-def is_latin(uchr):
-    try:
-        return latin_letters[uchr]
-    except KeyError:
-        return latin_letters.setdefault(uchr, 'LATIN' in unicodedata.name(uchr))
-
 
 def only_roman_chars(unistr):
+    latin_letters = {}
+
+    def is_latin(uchr):
+        try:
+            return latin_letters[uchr]
+        except KeyError:
+            return latin_letters.setdefault(uchr, 'LATIN' in unicodedata.name(uchr))
+
     return all(is_latin(uchr) for uchr in unistr if uchr.isalpha())  # isalpha suggested by John Machin
 
 
@@ -41,11 +40,14 @@ def translate_to_iso_codes(text):
 
 
 def translate_from_iso_codes(text):
+    if isinstance(text, int):
+        return text
+
     russian_letters = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя'
     for letter in text:
         try:
             letter_code = int.from_bytes(letter.encode('latin-1'), 'big')  # this is decoding from FG format
-        except UnicodeEncodeError as e:
+        except UnicodeEncodeError:
             # print('Error: %s' % e)
             continue
 
@@ -62,6 +64,16 @@ def translate_from_iso_codes(text):
             ru_letter = '•'
         elif letter == '&#8212;':
             ru_letter = '—'
+        elif letter == '&#8722;':
+            ru_letter = '−'
+        elif letter == '&#8217;':
+            ru_letter = '’'
+        elif letter == '&#8211;':
+            ru_letter = '–'
+        elif letter == '&#184;':
+            ru_letter = 'ё'
+        elif letter == '&#184;':
+            ru_letter = 'Ё'
         else:
             letter_number = int(letter[2:-1]) - 192
             ru_letter = russian_letters[letter_number]
@@ -250,7 +262,9 @@ class Monster:
         root_element = Et.fromstring(xml_text)
         npc_element = root_element.find('npc')
         if not npc_element:
-            raise Exception('Tag npc not found')
+            npc_element = root_element.find('reference').find('npcdata')
+            if not npc_element:
+                raise Exception('Tag npc not found')
 
         category_element = npc_element.find('category')
         if not category_element:
@@ -267,26 +281,28 @@ class Monster:
                         monster.__setattr__(attribute, '')
                     else:
                         text = tag.text
-                        if attribute == 'name':
-                            english_name = re.findall(" \((.+)\)$", text)
-                            # if '))' in text:
-                            #     half_text = text.split('(')[-1] + ')'
-                            #     english_name = re.findall("\((.+)\)", half_text)
-                            # else:
-                            #     english_name = re.findall("\((.+)\)", text)
-                            if english_name:
-                                monster.name['en_value'] = english_name[-1]
-                                if '(' in monster.name['en_value']:
-                                    monster.name['en_value'] += ')'
+                        if text is None:
+                            text = ''
 
+                        if attribute == 'name':
+                            if ') (' in text:
+                                ru_name, english_name = text.split(') (')
+                                ru_name += ')'
+                                english_name = english_name.replace('))', ')')
+                            else:
+                                ru_name = text.split(' (')[0]
+                                english_name = text.replace(ru_name, '').replace('(', '').replace(')', '').strip()
+                            monster.name['en_value'] = english_name
+                            monster.name['ru_value'] = translate_from_iso_codes(ru_name)
                         inner_tags = tag.findall('*')
                         for itag in inner_tags:
                             text += Et.tostring(itag).decode('utf-8')
 
-                        monster.__setattr__(attribute, text)
-
+                        if attribute != 'name':
+                            monster.__setattr__(attribute, text)
+            print(monster.name)
             monsters_dict[monster.name['en_value'].lower()] = monster
-
+        print(monsters_dict['vampire'])
         return monsters_dict
 
     @staticmethod
@@ -403,14 +419,14 @@ class Monster:
         root.append_under('%s -> abilities -> wisdom' % monster_path, 'score', {'type': "number"}, value=str(self.wisdom['en_value']))
 
         root.append_under('%s' % monster_path, 'ac', {'type': "number"}, value=self.get('ac'))
-        root.append_under('%s' % monster_path, 'actions', value=self.get('actions'))
+        root.append_under('%s' % monster_path, 'actions', value=' '.join([str(t) for t in self.actions]))
         root.append_under('%s' % monster_path, 'alignment', {'type': "string"}, value=self.get('alignment'))
         root.append_under('%s' % monster_path, 'cr', {'type': "string"}, value=str(self.cr['en_value']))
         root.append_under('%s' % monster_path, 'hd', {'type': "string"}, value=str(self.hd['en_value']))
         root.append_under('%s' % monster_path, 'hp', {'type': "number"}, value=str(self.hp['en_value']))
         root.append_under('%s' % monster_path, 'innatespells', value=str(self.get('innatespells')))
         root.append_under('%s' % monster_path, 'lairactions', value=str(self.get('lairactions')))
-        root.append_under('%s' % monster_path, 'legendaryactions', value=str(self.get('legendaryactions')))
+        root.append_under('%s' % monster_path, 'legendaryactions', value=' '.join([str(t) for t in self.actions]))
         root.append_under('%s' % monster_path, 'reactions', value=str(self.get('reactions')))
         root.append_under('%s' % monster_path, 'languages', {'type': "string"}, value=self.get('languages', ru=False))
         root.append_under('%s' % monster_path, 'locked', {'type': "number"}, value='1')
@@ -430,7 +446,7 @@ class Monster:
         additional_text += self.get('text')
         root.append_under('%s' % monster_path, 'text', {'type': "formattedtext"}, value=additional_text)
         root.append_under('%s' % monster_path, 'token', {'type': "token"}, value='%s@%s' % (token_file_name, root.module_name))
-        root.append_under('%s' % monster_path, 'traits', value=str(self.get('traits')))
+        root.append_under('%s' % monster_path, 'traits', value=' '.join([str(t) for t in self.traits]))
         root.append_under('%s' % monster_path, 'type', {'type': "string"}, value=self.get('type', ru=False))
         root.append_under('%s' % monster_path, 'xp', {'type': "number"}, value=self.get('xp'))
 
@@ -438,25 +454,4 @@ class Monster:
 
 
 if __name__ == '__main__':
-    # with open('db.xml') as xml_file:
-    #     Monster.parse_xml(xml_file.read())
-    all_monsters = Monster.load_from_file()
-    # image_files = [os.path.basename(f).replace('.jpg', '') for f in glob.glob('images/*.jpg')]
-    # tokens_files = [os.path.basename(f).replace('.png', '') for f in glob.glob('tokens/*.png')]
-
-    # Monster.load_from_file()
-    # number = 0
-    # for m in all_monsters.values():
-    #     name = m.name['en_value'].replace(' ', '').replace('-', '_').replace("'", '_').lower()
-    #     if name not in tokens_files:
-    #         print('%s.png' % name)
-    #         number += 1
-
-    #     if name not in image_files:
-    #         print('%s.jpg' % name)
-    #         number += 1
-    #     else:
-    #         image_files.remove(name)
-    # print(image_files)
-    # print(number)
-    Monster.save_to_file(all_monsters)
+    pass
