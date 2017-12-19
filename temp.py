@@ -22,10 +22,10 @@ with open('docxsave.obj', 'rb') as f:
 # monsters_renew = Monster.load_from_file('monsters_review.obj')
 # current_monsters = Monster.load_from_file('monsters.obj')
 
-updated_monsters = Monster.parse_xml(open('changes.xml').read().replace('D&D', 'DnD'))
-# updated_monsters = Monster.load_from_file('updated_monsters.obj')
-vampire = updated_monsters['vampire']  # type: Monster
-print(vampire.name)
+# updated_monsters = Monster.parse_xml(open('changes.xml').read().replace('D&D', 'DnD'))
+updated_monsters = Monster.load_from_file('updated_monsters.obj')
+vampire = updated_monsters['adult red dragon']  # type: Monster
+print(vampire.text)
 # for class_name in ('traits', 'actions', 'legendaryactions'):
 #     vampire = updated_monsters['vampire']  # type: Monster
 #     vampire.__dict__[class_name] = ActionsAndTraits.parse_xml(vampire.get(class_name, encode=False), class_name)
