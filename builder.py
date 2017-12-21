@@ -109,8 +109,8 @@ if __name__ == '__main__':
     shutil.copy('thumbnail.png', dist_folder + '/thumbnail.png')
     os.mkdir('%s/tokens' % dist_folder)
     os.mkdir('%s/images' % dist_folder)
-    monsters_dict = Monster.filter(all_monsters, {'name': 'Vampire'})
-    # monsters_dict = all_monsters
+    # monsters_dict = Monster.filter(all_monsters, {'name': 'Adult Red Dragon'})
+    monsters_dict = all_monsters
     for monster_name in sorted(monsters_dict):
         monster = monsters_dict[monster_name]
         print(monster.get('name', both=True, encode=False))

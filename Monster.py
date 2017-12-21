@@ -300,9 +300,8 @@ class Monster:
 
                         if attribute != 'name':
                             monster.__setattr__(attribute, text)
-            print(monster.name)
+
             monsters_dict[monster.name['en_value'].lower()] = monster
-        print(monsters_dict['vampire'])
         return monsters_dict
 
     @staticmethod
@@ -378,7 +377,11 @@ class Monster:
             FgXml.last_picture_number += 1
             monster_picture_number = FgXml.last_picture_number
             monster_picture_index = 'id-%s' % str(monster_picture_number).zfill(5)
-            additional_text = '<linklist>\n<link class="imagewindow" recordname="reference.imagedata.%s">%s</link>\n</linklist>\n' % (monster_picture_index, self.get('name', both=True))
+            if 'imagewindow' in self.get('text'):
+                old_picture_id = re.findall('reference\.imagedata\.(.+)"', self.get('text'))[0]
+                self.text['ru_value'] = self.text['ru_value'].replace(old_picture_id, monster_picture_index)
+            else:
+                additional_text = '<linklist>\n<link class="imagewindow" recordname="reference.imagedata.%s">%s</link>\n</linklist>\n' % (monster_picture_index, self.get('name', both=True))
             root.append_under('imagewindow -> index', '%s' % monster_picture_index)
             root.append_under('imagewindow -> index -> %s' % monster_picture_index, 'listlink', {"type": "windowreference"})
             root.append_under('imagewindow -> index -> %s -> listlink' % monster_picture_index, 'class', value='imagewindow')
@@ -419,14 +422,14 @@ class Monster:
         root.append_under('%s -> abilities -> wisdom' % monster_path, 'score', {'type': "number"}, value=str(self.wisdom['en_value']))
 
         root.append_under('%s' % monster_path, 'ac', {'type': "number"}, value=self.get('ac'))
-        root.append_under('%s' % monster_path, 'actions', value=' '.join([str(t) for t in self.actions]))
+        root.append_under('%s' % monster_path, 'actions', value=''.join(str(t) for t in self.actions['ru_value']))
         root.append_under('%s' % monster_path, 'alignment', {'type': "string"}, value=self.get('alignment'))
         root.append_under('%s' % monster_path, 'cr', {'type': "string"}, value=str(self.cr['en_value']))
         root.append_under('%s' % monster_path, 'hd', {'type': "string"}, value=str(self.hd['en_value']))
         root.append_under('%s' % monster_path, 'hp', {'type': "number"}, value=str(self.hp['en_value']))
         root.append_under('%s' % monster_path, 'innatespells', value=str(self.get('innatespells')))
         root.append_under('%s' % monster_path, 'lairactions', value=str(self.get('lairactions')))
-        root.append_under('%s' % monster_path, 'legendaryactions', value=' '.join([str(t) for t in self.actions]))
+        root.append_under('%s' % monster_path, 'legendaryactions', value=''.join(str(t) for t in self.legendaryactions['ru_value']))
         root.append_under('%s' % monster_path, 'reactions', value=str(self.get('reactions')))
         root.append_under('%s' % monster_path, 'languages', {'type': "string"}, value=self.get('languages', ru=False))
         root.append_under('%s' % monster_path, 'locked', {'type': "number"}, value='1')
@@ -446,7 +449,8 @@ class Monster:
         additional_text += self.get('text')
         root.append_under('%s' % monster_path, 'text', {'type': "formattedtext"}, value=additional_text)
         root.append_under('%s' % monster_path, 'token', {'type': "token"}, value='%s@%s' % (token_file_name, root.module_name))
-        root.append_under('%s' % monster_path, 'traits', value=' '.join([str(t) for t in self.traits]))
+
+        root.append_under('%s' % monster_path, 'traits', value=''.join(str(t) for t in self.traits['ru_value']))
         root.append_under('%s' % monster_path, 'type', {'type': "string"}, value=self.get('type', ru=False))
         root.append_under('%s' % monster_path, 'xp', {'type': "number"}, value=self.get('xp'))
 
