@@ -264,7 +264,9 @@ class Monster:
         if not npc_element:
             npc_element = root_element.find('reference').find('npcdata')
             if not npc_element:
-                raise Exception('Tag npc not found')
+                npc_element = root_element.find('reference').find('category').find('npcdata')
+                if not npc_element:
+                    raise Exception('Tag npc not found')
 
         category_element = npc_element.find('category')
         if not category_element:
@@ -456,6 +458,52 @@ class Monster:
 
         return image_file_name, token_file_name
 
+    @staticmethod
+    def load_patch_from_xml(xml_text):
+        if not xml_text:
+            raise Exception('Empty XML provided')
+        monsters_list = []
+        root_element = Et.fromstring(xml_text)
+        npc_element = root_element.find('reference').find('category').find('npcdata')
+        if not npc_element:
+            raise Exception('Tag npc not found')
 
+        category_element = npc_element.find('category')
+        if not category_element:
+            raise Exception('There should be tag category under npc tag')
+
+        xml_monsters = category_element.findall('*')
+        for xml_monster in xml_monsters:
+            monster = Monster(number=int(xml_monster.tag.replace('id-', '')))
+            for attribute in monster.__dict__.keys():
+                if attribute in Monster.path_in_xml.keys():
+                    xml_path = Monster.path_in_xml[attribute]
+                    tag = xml_monster.find(xml_path)
+                    if tag is None:
+                        monster.__setattr__(attribute, '')
+                    else:
+                        text = tag.text
+                        if text is None:
+                            text = ''
+
+                        if attribute == 'name':
+                            if ') (' in text:
+                                ru_name, english_name = text.split(') (')
+                                ru_name += ')'
+                                english_name = english_name.replace('))', ')')
+                            else:
+                                ru_name = text.split(' (')[0]
+                                english_name = text.replace(ru_name, '').replace('(', '').replace(')', '').strip()
+                            monster.name['en_value'] = english_name
+                            monster.name['ru_value'] = translate_from_iso_codes(ru_name)
+                        inner_tags = tag.findall('*')
+                        for itag in inner_tags:
+                            text += Et.tostring(itag).decode('utf-8')
+
+                        if attribute != 'name':
+                            monster.__setattr__(attribute, text)
+
+            monsters_list.append(monster)
+        return monsters_list
 if __name__ == '__main__':
     pass
