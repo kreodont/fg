@@ -1,39 +1,7 @@
-# from pdfminer.pdfparser import PDFParser
-# from pdfminer.pdfdocument import PDFDocument
-# from pdfminer.pdfpage import PDFTextExtractionNotAllowed
-# from pdfminer.pdfpage import PDFPage
-# from pdfminer.pdfinterp import PDFPageInterpreter
-# from pdfminer.pdfinterp import PDFResourceManager
-# from pdfminer.pdfdevice import PDFDevice
-# from pdfminer.layout import LAParams
-# from pdfminer.converter import TextConverter
-# from io import StringIO
 from bs4 import BeautifulSoup
 import re
 import pickle
 
-# def convert_pdf_to_txt(path):
-#     rsrcmgr = PDFResourceManager()
-#     retstr = StringIO()
-#     codec = 'utf-8'
-#     laparams = LAParams()
-#     device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
-#     fp = open(path, 'rb')
-#     interpreter = PDFPageInterpreter(rsrcmgr, device)
-#     password = ""
-#     maxpages = 0
-#     caching = True
-#     pagenos = {171}
-#
-#     for page in PDFPage.get_pages(fp, pagenos, maxpages=maxpages, password=password,caching=caching, check_extractable=True):
-#         interpreter.process_page(page)
-#
-#     text = retstr.getvalue()
-#
-#     fp.close()
-#     device.close()
-#     retstr.close()
-#     return text
 styles_dict = {('LOEWBH', '11'): 'Normal text',
                ('EOQGHV', '11'): 'Normal text',
                ('VQHELN', '11'): 'Normal text',
@@ -68,6 +36,71 @@ styles_dict = {('LOEWBH', '11'): 'Normal text',
                ('UEUYXP', '24'): 'Image text',
                ('UEUYXP', '17'): 'Image text',
                ('WHTKZL', '48'): 'Image text',
+               ('MUMUVP', '61'): 'Image text',
+               ('DEWSZH', '24'): 'Image text',
+               ('DEWSZH', '17'): 'Image text',
+               ('JAWCFV', '11'): 'Bold text',
+               ('PJYMLJ', '10'): 'Normal text',
+               ('DRUSZH', '10'): 'Bold text',
+               ('BBXGXL', '28'): 'Header 6',
+               ('BBXGXL', '19'): 'Header 6',
+               ('ACIAJN', '11'): 'Normal text',
+               ('TPWKPB', '15'): 'Header 7',
+               ('UTLQDZ', '11'): 'Unknown',
+               ('KZLITT', '10'): 'Unknown',
+               ('UBJLDZ', '11'): 'Italic text',
+               ('OSHBXL', '11'): 'Unknown',
+               ('KMJDTT', '9'): 'Small italic',
+               ('GBGFPB', '9'): 'Unknown',
+               ('DRUSZH', '12'): 'Bold text',
+               ('AKGAJN', '11'): 'Normal text',
+               ('PJYMLJ', '7'): 'Small text',
+               ('OSHBXL', '7'): 'Small italic',
+               ('PJYMLJ', '13'): 'Red text',
+               ('FCWZBD', '30'): 'Header 8',
+               ('FCWZBD', '21'): 'Header 8',
+               ('EYHTNF', '13'): 'Header 9',
+               ('EYHTNF', '13'): 'Header 10',
+               ('ACIAJN', '12'): 'Header 11',
+               ('TPWKPB', '28'): 'Header 12',
+               ('PJYMLJ', '12'): 'Page number',
+               ('TPWKPB', '12'): 'Page footer',
+               ('TPWKPB', '20'): 'Header 13',
+               ('DEWSZH', '16'): 'Header 14',
+               ('OSHBXL', '10'): 'Italic text',
+               ('XQVDTT', '13'): 'Bold text',
+               ('XQVDTT', '9'): 'Bold text',
+               ('TPWKPB', '13'): 'Image text',
+               ('EYHTNF', '12'): 'Normal text',
+               ('DEWSZH', '14'): 'Note header',
+               ('DEWSZH', '10'): 'Note header',
+               ('UJHLDZ', '10'): 'Bold text',
+               ('QGUWOM', '12'): 'Normal text',
+               ('AKGAJN', '10'): 'Normal text',
+               ('CPHQVO', '10'): 'Normal text',
+               ('LLTJHR', '10'): 'Normal text',
+               ('MTVAVU', '13'): 'Bold italic text',
+               ('KMJDTT', '10'): 'Italic text',
+               ('TPWKPB', '7'): 'Normal text',
+               ('PJYMLJ', '9'): 'Footer text',
+               ('PJYMLJ', '15'): 'Underscored text',
+               ('VATRRX', '10'): 'Normal text',
+               ('DRUSZH', '16'): 'Normal text',
+               ('GBGFPB', '10'): 'Normal text',
+               ('ACIAJN', '6'): 'Normal text',
+               ('NWVVJN', '12'): 'Normal text',
+               ('OSHBXL', '9'): 'Footer text',
+               ('KZLITT', '9'): 'Normal text',
+               ('VNWRRX', '13'): 'Unknown',
+               ('RCTTNF', '10'): 'Unknown',
+               ('XQVDTT', '11'): 'Normal text',
+               ('XQVDTT', '8'): 'Normal text',
+               ('MUMUVP', '36'): 'Image text',
+               ('ACIAJN', '15'): 'Image text',
+               ('UTLQDZ', '15'): 'Image text',
+               ('ACIAJN', '14'): 'Image text',
+               ('UBJLDZ', '14'): 'Image text',
+               ('DEWSZH', '11'): 'Header 14',
                ('ZEDXPF', '9'): 'Small italic',
                ('IUTELN', '7'): 'Small italic',
                ('PHFUFZ', '7'): 'Small normal',
@@ -146,7 +179,7 @@ styles_dict = {('LOEWBH', '11'): 'Normal text',
                }
 
 
-def parse_style(style_string):
+def parse_style(style_string, text):
     tokens = re.findall("font-family: b'(.+)\+.+font-size:(\d+)px", style_string)
     if not tokens or len(tokens[0]) < 2:
         return ''
@@ -154,6 +187,7 @@ def parse_style(style_string):
     if tokens[0] not in styles_dict:
         # print('Unknown')
         print("%s: 'Unknown'," % str(tokens[0]))
+        print(text)
         # print(tokens[0])
         styles_dict[tokens[0]] = 'Unknown'
         return 'Unknown'
@@ -161,52 +195,63 @@ def parse_style(style_string):
     return styles_dict[tokens[0]]
 
 
-text = open('short_test.html', encoding="utf-8").read()
-# text = open('output.html', encoding="utf-8").read()
+def add_paragraph_to_article(paragraph_text_to_add, article_text):
+    if not paragraph_text_to_add.strip():
+        return article_text
+
+    if not paragraph_text_to_add.startswith('<p>'):
+        paragraph_text_to_add = '<p>' + paragraph_text_to_add
+
+    if not paragraph_text_to_add.endswith('</p>\n'):
+        paragraph_text_to_add += '</p>\n'
+
+    article_text += paragraph_text_to_add
+    return article_text
+
+
+# text = open('short_test.html', encoding="utf-8").read()
+text = open('xanathar.html', encoding="utf-8").read()
 soup = BeautifulSoup(text, "html.parser")
 paragraphs = soup.find_all('div')
 articles_list = []
 current_article_header = ''
 current_article_text = ''
 paragraph_text = ''
-starting_tag_added = False
+# starting_tag_added = False
 for p in paragraphs:
     if not p.text.strip():  # empty paragraph
         continue
-    paragraph_text = ''
     spans = p.find_all('span')
     for span in spans:
         if not span:
             continue
 
-        style = parse_style(span['style'])
+        style = parse_style(span['style'], span.text)
+        if not style:
+            continue
+        if not span.text:
+            continue
+
         if 'Page' in style or 'Image' in style or 'note' in style:
+            continue
+
+        if style in ('Small italic', 'Small normal', 'Red text', 'Unknown', "Small text", "Footer text", "Underscored text"):
             continue
 
         if style == 'Normal text':
             paragraph_text += span.text.replace('-\n', '').replace('\n', ' ')
-        elif style == 'Header 1':
+        elif style in ('Header 1', 'Header 5', 'Header 6', 'Header 7', 'Header 8', 'Header 10', 'Header 11', 'Header 12', 'Header 13', 'Header 14', "Note header"):  # New article starting
             if current_article_header:
-                if paragraph_text.strip():
-                    if starting_tag_added:
-                        current_article_text += '%s</p>\n' % paragraph_text
-                    else:
-                        current_article_text += '<p>%s</p>\n' % paragraph_text
-                    paragraph_text = ''
-                    starting_tag_added = False
+                current_article_text = add_paragraph_to_article(paragraph_text, current_article_text)
+                paragraph_text = ''
                 articles_list.append({current_article_header: current_article_text.replace("</i><i>-</i><i>", '').replace("</b><b>-</b><b>", '')})
 
             current_article_header = span.text.strip()
             current_article_text = '<h>%s</h>\n' % span.text.strip()
-            starting_tag_added = False
-        elif style == 'Header 2':
-            if paragraph_text.strip():
-                if starting_tag_added:
-                    current_article_text += '%s</p>\n' % paragraph_text
-                else:
-                    current_article_text += '<p>%s</p>\n' % paragraph_text
-                paragraph_text = ''
-                starting_tag_added = False
+            # starting_tag_added = False
+        elif style in ('Header 2', 'Header 3', 'Header 4'):
+            current_article_text = add_paragraph_to_article(paragraph_text, current_article_text)
+            paragraph_text = ''
             current_article_text += '<h>%s</h>\n' % span.text.strip()
         elif style == 'Bold text':
             paragraph_text += '<b>%s</b>' % span.text.strip()
@@ -215,24 +260,34 @@ for p in paragraphs:
         elif style == 'Italic text':
             paragraph_text += '<i>%s</i>' % span.text.strip()
         else:
-            print(style)
+            print('"%s"' % style)
+            print('"%s"' % span.text)
             exit(1)
+    if not paragraph_text.strip():
+        continue
+    # print(paragraph_text)
+    # exit(0)
+
     if paragraph_text.strip():
         if paragraph_text.strip().endswith('.'):
-            if starting_tag_added:
-                current_article_text += '%s</p>\n' % paragraph_text
-            else:
-                current_article_text += '<p>%s</p>\n' % paragraph_text
-                starting_tag_added = False
-        else:
+            current_article_text = add_paragraph_to_article(paragraph_text, current_article_text)
+            paragraph_text = ''
+            # if starting_tag_added:
+            #     current_article_text += '%s</p>\n' % paragraph_text
+            # else:
+            #     current_article_text += '<p>%s</p>\n' % paragraph_text
+            #     starting_tag_added = False
+            # else:
+            #     current_article_text += paragraph_text
+            #     paragraph_text = ''
             # print(current_article_text)
             # print(paragraph_text)
             # exit(0)
-            if starting_tag_added:
-                current_article_text +=  paragraph_text
-            else:
-                current_article_text += '<p>' + paragraph_text
-                starting_tag_added = True
+            # if starting_tag_added:
+            #     current_article_text += paragraph_text
+            # else:
+            #     current_article_text += '<p>' + paragraph_text
+            #     starting_tag_added = True
 
 for article in articles_list:
     print(list(article.values())[0])

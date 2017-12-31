@@ -20,8 +20,8 @@ def create_definition_xml(name, author='KY'):
     <author>%s</author>
     <ruleset>5E</ruleset>
 </root>''' % (name, author)
-    with open('%s/definition.xml' % dist_folder, 'w') as f:
-        f.write(xml_text)
+    with open('%s/definition.xml' % dist_folder, 'w') as output_file:
+        output_file.write(xml_text)
 
 
 def purge_dist_folder():
@@ -52,6 +52,7 @@ def zipdir(path, ziph, exceptions=()):
                 continue
             ziph.write(full_path, full_path_without_folder_name)
 
+
 def build_xml():
     root = FgXml(module_name)
     root.append_under('root', 'library')
@@ -79,47 +80,12 @@ def build_xml():
     root.append_under('lists -> npc', 'name', {'type': "string"}, value='Story')
     root.append_under('lists -> npc', 'index')
 
-    # root.append_under('root', 'reference', {'static': "true"})
     root.append_under('root', 'reference')
     root.append_under('reference', 'imagedata')
     root.append_under('imagedata', 'category', {"name": "RUNPC", "baseicon": "0", "decalicon": "0"})
     root.append_under('reference', 'npcdata')
     root.append_under('npcdata', 'category', {"name": "Ru", "baseicon": "0", "decalicon": "0"})
     return root
-# def build_xml():
-#     root = FgXml(module_name)
-#     root.append_under('root', 'library')
-#     root.append_under('library', 'insertion_test')
-#     root.append_under('insertion_test', 'categoryname', {'type': 'string'}, value='Rus')
-#     root.append_under('insertion_test', 'name', {'type': 'string'}, value='insertion_test')
-#
-#     root.append_under('insertion_test', 'entries')
-#     root.append_under('entries', 'imagewindow')
-#     root.append_under('imagewindow', 'librarylink', {'type': "windowreference"})
-#     root.append_under('imagewindow', 'name', {'type': "string"}, value='Images &#38; Maps')
-#     root.append_under('librarylink', 'class', value='referenceindexsorted')
-#     root.append_under('librarylink', 'recordname', value='lists.imagewindow@%s' % module_name)
-#     root.append_under('entries', 'story')
-#     root.append_under('story', 'name', {'type': "string"}, value='Story')
-#     root.append_under('story', 'librarylink', {'type': "windowreference"})
-#     root.append_under('story -> librarylink', 'class', value='referenceindexsorted')
-#     root.append_under('story -> librarylink', 'recordname', value='lists.story@%s' % module_name)
-#
-#     root.append_under('root', 'lists')
-#     root.append_under('lists', 'imagewindow')
-#     root.append_under('lists -> imagewindow', 'name', {'type': "string"}, value='Images &#38; Maps')
-#     root.append_under('lists -> imagewindow', 'index')
-#     root.append_under('lists', 'story')
-#     root.append_under('lists -> story', 'name', {'type': "string"}, value='Story')
-#     root.append_under('lists -> story', 'index')
-#
-#     # root.append_under('root', 'reference', {'static': "true"})
-#     root.append_under('root', 'reference')
-#     root.append_under('reference', 'imagedata')
-#     root.append_under('imagedata', 'category', {"name": "RUNPC", "baseicon": "0", "decalicon": "0"})
-#     root.append_under('reference', 'storydata')
-#     root.append_under('reference -> storydata', 'category', {"name": "Ru", "baseicon": "0", "decalicon": "0"})
-#     return root
 
 if __name__ == '__main__':
     if only_assemble_files:
@@ -131,33 +97,34 @@ if __name__ == '__main__':
 
     purge_dist_folder()
     create_definition_xml(module_name)
-    root = build_xml()
+    xml = build_xml()
     index = 1
 
-    with open('stories.obj', 'rb') as f:
-        stories = pickle.loads(f.read())
+    with open('stories.obj', 'rb') as stories_file:
+        stories = pickle.loads(stories_file.read())
         for story in stories:
             story_name = list(story.keys())[0]
             story_text = list(story.values())[0]
+            if len(story_text) < 150:
+                continue
             story_index = 'id-%s' % str(index).zfill(5)
-            root.append_under('npc -> index', '%s' % story_index)
-            root.append_under('npc -> index -> %s' % story_index, 'listlink', {"type": "windowreference"})
-            root.append_under('npc -> index -> %s -> listlink' % story_index, 'class', value='encounter')
-            root.append_under('npc -> index -> %s -> listlink' % story_index, 'recordname', value='reference.npcdata.%s@%s' % (story_index, root.module_name))
-            root.append_under('npc -> index -> %s' % story_index, 'name', {"type": "string"}, value=translate_to_iso_codes(story_name))
-            root.append_under('npcdata -> category', '%s' % story_index)
+            xml.append_under('npc -> index', '%s' % story_index)
+            xml.append_under('npc -> index -> %s' % story_index, 'listlink', {"type": "windowreference"})
+            xml.append_under('npc -> index -> %s -> listlink' % story_index, 'class', value='encounter')
+            xml.append_under('npc -> index -> %s -> listlink' % story_index, 'recordname', value='reference.npcdata.%s@%s' % (story_index, xml.module_name))
+            xml.append_under('npc -> index -> %s' % story_index, 'name', {"type": "string"}, value=str(index).zfill(5) + ' ' + translate_to_iso_codes(story_name))
+            xml.append_under('npcdata -> category', '%s' % story_index)
             story_path = 'npcdata -> category -> %s' % story_index
-            root.append_under(story_path, 'name', {'type': "string"}, value=translate_to_iso_codes(story_name))
-            root.append_under(story_path, 'text', {'type': "formattedtext"}, value=translate_to_iso_codes(story_text))
-            # root.append_under('reference -> storydata -> category', story_index)
-            # root.append_under('reference -> storydata -> category -> %s' % story_index, 'locked', {'type': "number"}, value='0')
-            # root.append_under('reference -> storydata -> category -> %s' % story_index, 'name', {'type': "string"}, value=translate_to_iso_codes(story_name))
-            # root.append_under('reference -> storydata -> category -> %s' % story_index, 'text', {'type': "formattedtext"}, value=translate_to_iso_codes(story_text))
+            xml.append_under(story_path, 'name', {'type': "string"}, value=translate_to_iso_codes(story_name))
+            xml.append_under(story_path, 'text', {'type': "formattedtext"}, value=translate_to_iso_codes(story_text))
             index += 1
+
     with open('%s/common.xml' % dist_folder, 'w+') as common_xml:
-        common_xml.write(str(root))
+        common_xml.write(str(xml))
         common_xml.close()
+
     zip_file = zipfile.ZipFile(module_file_name, 'w', zipfile.ZIP_DEFLATED)
     zipdir(dist_folder, zip_file)
     zip_file.close()
+
     shutil.copy(module_file_name, fantasy_grounds_folder)
