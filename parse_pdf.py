@@ -175,24 +175,86 @@ styles_dict = {('LOEWBH', '11'): 'Normal text',
                ('OYTILB', '10'): 'Unknown',
                ('UMSYXP', '16'): 'Unknown',
                ('WHTKZL', '36'): 'Unknown',
-               ('RSCBHV', '14'): 'Unknown'
+               ('RSCBHV', '14'): 'Unknown',
+               ('HNDKZK', '55'): 'Other',
+               ('JQCWBG', '55'): 'Header',
+               ('GOOELM', '39'): 'Header',
+               ('FKZYXO', '24'): 'Image text',
+               ('FKZYXO', '17'): 'Image',
+               ('DHAMVS', '28'): 'Header',
+               ('ASSZND', '11'): 'Normal',
+               ('UROKHP', '11'): 'Normal',
+               ('QLQMDX', '11'): 'Italic text',
+               ('TSEETR', '11'): 'Italic text',
+               ('LWZDLH', '10'): 'Bold text',
+               ('DKYHDX', '10'): 'Normal',
+               ('JTARJL', '10'): 'Normal',
+               ('LWZDLH', '12'): 'Header',
+               ('VVZLNI', '11'): 'Normal',
+               ('RPBNJQ', '11'): 'Normal',
+               ('QLMHVS', '9'): 'Small italic',
+               ('JTARJL', '7'): 'Small text',
+               ('HHYJCP', '7'): 'Small italic',
+               ('DKYHDX', '7'): 'Normal',
+               ('JTARJL', '13'): 'Red text',
+('HHYJCP', '10'): 'Italic text',
+('QNMSYX', '15'): 'Header',
+('ASSZND', '13'): 'Normal',
+('DHAMVS', '20'): 'Header',
+('FKZYXO', '14'): 'Header part',
+               ('FKZYXO', '10'): 'Header part',
+('ZBCJRA', '10'): 'Page number',
+('DHAMVS', '9'): 'Header',
+('OQLVTW', '15'): 'Comment italic',
+('DHAMVS', '15'): 'Header',
+('DHAMVS', '13'): 'Header',
+('FKZYXO', '16'): 'Header part',
+('FKZYXO', '11'): 'Header part',
+('SJMOXO', '13'): 'Bold text',
+('DHAMVS', '10'): 'Page number',
+('OQLVTW', '16'): 'Comment italic',
+('LXEEMC', '10'): 'Other',
+('OQLVTW', '14'): 'Comment italic',
+('OQLVTW', '18'): 'Other',
+('OQLVTW', '17'): 'Other',
+('TIWULM', '9'): 'Other',
+('DKYHDX', '9'): 'Other',
+('JTARJL', '9'): 'Comment',
+('YZPACC', '10'): 'Other',
+('QNMSYX', '12'): 'Header',
+('JQCWBG', '36'): 'Header',
+('ASSZND', '14'): 'Normal text',
+('TSEETR', '14'): 'Italic text'
+
+
+
                }
 
+texts_examples = {}
 
-def parse_style(style_string, text):
+
+def parse_style(style_string, text, page_number=0):
     tokens = re.findall("font-family: b'(.+)\+.+font-size:(\d+)px", style_string)
+
     if not tokens or len(tokens[0]) < 2:
         return ''
-        # raise Exception('Cannot parse style string %s' % style_string)
-    if tokens[0] not in styles_dict:
-        # print('Unknown')
-        print("%s: 'Unknown'," % str(tokens[0]))
-        print(text)
-        # print(tokens[0])
-        styles_dict[tokens[0]] = 'Unknown'
-        return 'Unknown'
-        # raise Exception('Unknown text style: %s' % str(tokens[0]))
-    return styles_dict[tokens[0]]
+    else:
+        tokens = tokens[0]
+    font_code, font_size = tokens
+
+    font_size = int(font_size)
+    # if font_size > 20:
+    #     return 'Header'
+    # else:
+    #     return 'Normal text'
+    if tokens not in styles_dict:
+        styles_dict[tokens] = 'Unknown'
+
+    if tokens not in texts_examples:
+        texts_examples[tokens] = ''
+
+    texts_examples[tokens] += '\n' + text + ' (page %s)' % page_number
+    return styles_dict[tokens]
 
 
 def add_paragraph_to_article(paragraph_text_to_add, article_text):
@@ -214,6 +276,7 @@ text = open('xanathar.html', encoding="utf-8").read()
 soup = BeautifulSoup(text, "html.parser")
 paragraphs = soup.find_all('div')
 articles_list = []
+current_page_number = 1
 current_article_header = ''
 current_article_text = ''
 paragraph_text = ''
@@ -222,11 +285,14 @@ for p in paragraphs:
     if not p.text.strip():  # empty paragraph
         continue
     spans = p.find_all('span')
+    if 'page' in p.text.lower() and ',' not in p.text:
+        current_page_number = int(p.text.lower().replace('page ', ''))
+
     for span in spans:
         if not span:
             continue
 
-        style = parse_style(span['style'], span.text)
+        style = parse_style(span['style'], span.text, current_page_number)
         if not style:
             continue
         if not span.text:
@@ -235,10 +301,10 @@ for p in paragraphs:
         if 'Page' in style or 'Image' in style or 'note' in style:
             continue
 
-        if style in ('Small italic', 'Small normal', 'Red text', 'Unknown', "Small text", "Footer text", "Underscored text"):
+        if style in ('Small italic', 'Small normal', 'Red text', 'Unknown', "Small text", "Footer text", "Underscored text", 'Other', 'Header part'):
             continue
 
-        if style == 'Normal text':
+        if style in ('Normal text', 'Normal'):
             paragraph_text += span.text.replace('-\n', '').replace('\n', ' ')
         elif style in ('Header 1', 'Header 5', 'Header 6', 'Header 7', 'Header 8', 'Header 10', 'Header 11', 'Header 12', 'Header 13', 'Header 14', "Note header"):  # New article starting
             if current_article_header:
@@ -249,7 +315,7 @@ for p in paragraphs:
             current_article_header = span.text.strip()
             current_article_text = '<h>%s</h>\n' % span.text.strip()
             # starting_tag_added = False
-        elif style in ('Header 2', 'Header 3', 'Header 4'):
+        elif style in ('Header 2', 'Header 3', 'Header 4', 'Header'):
             current_article_text = add_paragraph_to_article(paragraph_text, current_article_text)
             paragraph_text = ''
             current_article_text += '<h>%s</h>\n' % span.text.strip()
@@ -257,7 +323,7 @@ for p in paragraphs:
             paragraph_text += '<b>%s</b>' % span.text.strip()
         elif style == 'Bold italic text':
             paragraph_text += '<i><b>%s</b></i>' % span.text.strip()
-        elif style == 'Italic text':
+        elif style in ('Italic text', 'Comment italic', 'Comment'):
             paragraph_text += '<i>%s</i>' % span.text.strip()
         else:
             print('"%s"' % style)
@@ -289,9 +355,15 @@ for p in paragraphs:
             #     current_article_text += '<p>' + paragraph_text
             #     starting_tag_added = True
 
-for article in articles_list:
-    print(list(article.values())[0])
-    print('\n\n')
+for style in texts_examples:
+    if styles_dict[style] == 'Unknown':
+        print(style)
+        print(texts_examples[style])
+        print('-' * 80)
+
+# for article in articles_list:
+#     print(list(article.values())[0])
+#     print('\n\n')
 
 with open('stories.obj', 'wb') as f:
     f.write(pickle.dumps(articles_list))
