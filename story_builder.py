@@ -6,9 +6,9 @@ import pickle
 from Monster import translate_to_iso_codes
 
 dist_folder = 'story_dist'
-module_name = 'Insertion'
+module_name = 'Volo'
 only_assemble_files = False
-module_file_name = 'Insertion.mod'
+module_file_name = 'Volo.mod'
 fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
 
 
@@ -100,24 +100,28 @@ if __name__ == '__main__':
     xml = build_xml()
     index = 1
 
+    total_text = ''
+    total_name = 'Volo'
     with open('stories.obj', 'rb') as stories_file:
         stories = pickle.loads(stories_file.read())
         for story in stories:
+
             story_name = list(story.keys())[0]
             story_text = list(story.values())[0]
-            if len(story_text) < 150:
-                continue
-            story_index = 'id-%s' % str(index).zfill(5)
-            xml.append_under('npc -> index', '%s' % story_index)
-            xml.append_under('npc -> index -> %s' % story_index, 'listlink', {"type": "windowreference"})
-            xml.append_under('npc -> index -> %s -> listlink' % story_index, 'class', value='encounter')
-            xml.append_under('npc -> index -> %s -> listlink' % story_index, 'recordname', value='reference.npcdata.%s@%s' % (story_index, xml.module_name))
-            xml.append_under('npc -> index -> %s' % story_index, 'name', {"type": "string"}, value=str(index).zfill(5) + ' ' + translate_to_iso_codes(story_name))
-            xml.append_under('npcdata -> category', '%s' % story_index)
-            story_path = 'npcdata -> category -> %s' % story_index
-            xml.append_under(story_path, 'name', {'type': "string"}, value=translate_to_iso_codes(story_name))
-            xml.append_under(story_path, 'text', {'type': "formattedtext"}, value=translate_to_iso_codes(story_text))
-            index += 1
+            total_text += story_text
+            # if len(story_text) < 150:
+            #     continue
+        story_index = 'id-%s' % str(index).zfill(5)
+        xml.append_under('npc -> index', '%s' % story_index)
+        xml.append_under('npc -> index -> %s' % story_index, 'listlink', {"type": "windowreference"})
+        xml.append_under('npc -> index -> %s -> listlink' % story_index, 'class', value='encounter')
+        xml.append_under('npc -> index -> %s -> listlink' % story_index, 'recordname', value='reference.npcdata.%s@%s' % (story_index, xml.module_name))
+        xml.append_under('npc -> index -> %s' % story_index, 'name', {"type": "string"}, value=str(index).zfill(5) + ' ' + translate_to_iso_codes(total_name))
+        xml.append_under('npcdata -> category', '%s' % story_index)
+        story_path = 'npcdata -> category -> %s' % story_index
+        xml.append_under(story_path, 'name', {'type': "string"}, value=translate_to_iso_codes(total_name))
+        xml.append_under(story_path, 'text', {'type': "formattedtext"}, value=translate_to_iso_codes(total_text))
+        index += 1
 
     with open('%s/common.xml' % dist_folder, 'w+') as common_xml:
         common_xml.write(str(xml))

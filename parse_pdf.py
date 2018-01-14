@@ -306,7 +306,7 @@ for p in paragraphs:
 
         if style in ('Normal text', 'Normal'):
             paragraph_text += span.text.replace('-\n', '').replace('\n', ' ')
-        elif style in ('Header 1', 'Header 5', 'Header 6', 'Header 7', 'Header 8', 'Header 10', 'Header 11', 'Header 12', 'Header 13', 'Header 14', "Note header"):  # New article starting
+        elif style in ('Header 1', 'Header 5', 'Header 6', 'Header 7', 'Header 8', 'Header 10', 'Header 11', 'Header 12', 'Header 13', 'Header 14', "Note header", "Header"):  # New article starting
             if current_article_header:
                 current_article_text = add_paragraph_to_article(paragraph_text, current_article_text)
                 paragraph_text = ''
@@ -315,7 +315,7 @@ for p in paragraphs:
             current_article_header = span.text.strip()
             current_article_text = '<h>%s</h>\n' % span.text.strip()
             # starting_tag_added = False
-        elif style in ('Header 2', 'Header 3', 'Header 4', 'Header'):
+        elif style in ('Header 2', 'Header 3', 'Header 4'):
             current_article_text = add_paragraph_to_article(paragraph_text, current_article_text)
             paragraph_text = ''
             current_article_text += '<h>%s</h>\n' % span.text.strip()
@@ -361,9 +361,9 @@ for style in texts_examples:
         print(texts_examples[style])
         print('-' * 80)
 
-# for article in articles_list:
-#     print(list(article.values())[0])
-#     print('\n\n')
+for article in articles_list:
+    print(list(article.values())[0])
+    print('\n\n')
 
 with open('stories.obj', 'wb') as f:
     f.write(pickle.dumps(articles_list))

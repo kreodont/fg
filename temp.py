@@ -28,20 +28,20 @@ with open('docxsave.obj', 'rb') as f:
 # updated_monsters = Monster.parse_xml(open('changes.xml').read().replace('D&D', 'DnD'))
 
 # changes_in_description = Monster.parse_xml(open('TestModule_1513334269.xml', 'rb').read())
-updated_monsters = Monster.load_from_file('updated_monsters.obj')
-xml_text = open('changes_2017_12_25.xml').read()
-# print(xml_text)
-
-changes_in_description = Monster.load_patch_from_xml(html.unescape(xml_text))
-for monster in changes_in_description:
-    if not monster.text['ru_value']:
-        continue
-
-    en_name = re.findall(' \((.+)\)', monster.text['ru_value'])[0].lower()
-    print(en_name)
-    updated_monster = updated_monsters[en_name]
-    updated_monster.text = monster.text['ru_value']
-Monster.save_to_file(updated_monsters, 'updated_monsters.obj')
+# updated_monsters = Monster.load_from_file('updated_monsters.obj')
+# xml_text = open('changes_2017_12_25.xml').read()
+# # print(xml_text)
+#
+# changes_in_description = Monster.load_patch_from_xml(html.unescape(xml_text))
+# for monster in changes_in_description:
+#     if not monster.text['ru_value']:
+#         continue
+#
+#     en_name = re.findall(' \((.+)\)', monster.text['ru_value'])[0].lower()
+#     print(en_name)
+#     updated_monster = updated_monsters[en_name]
+#     updated_monster.text = monster.text['ru_value']
+# Monster.save_to_file(updated_monsters, 'updated_monsters.obj')
     # print(monster.text)
 # print(changes_in_description)
 # for chosen_monster in updated_monsters.values():
@@ -203,3 +203,6 @@ Monster.save_to_file(updated_monsters, 'updated_monsters.obj')
 # with open('docxsave.obj', 'wb') as f:
 #     f.write(pickle.dumps(docx_monsters_dict))
 #     f.close()
+with open('stories.obj', 'rb') as stories_file:
+    stories = pickle.loads(stories_file.read())
+    print(stories)
