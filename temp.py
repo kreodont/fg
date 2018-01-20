@@ -205,4 +205,6 @@ with open('docxsave.obj', 'rb') as f:
 #     f.close()
 with open('stories.obj', 'rb') as stories_file:
     stories = pickle.loads(stories_file.read())
-    print(stories)
+    for story in stories:
+        print(story)
+        input()
