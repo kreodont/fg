@@ -2,7 +2,7 @@
 import pickle
 import codecs
 from Monster import Monster, translate_from_iso_codes
-from ActionsAndTraits import ActionsAndTraits
+# from ActionsAndTraits import ActionsAndTraits
 import xml.etree.ElementTree as Et
 import html
 import re
@@ -10,6 +10,12 @@ import re
 with open('docxsave.obj', 'rb') as f:
     docx_monsters_dict = pickle.loads(f.read())
 
+
+with open('art.txt', 'w') as output_file:
+    for monster_name in sorted(docx_monsters_dict):
+        output_file.write('\n')
+        output_file.write(docx_monsters_dict[monster_name])
+        output_file.write('\n')
 
 # del docx_monsters_dict['']
 # with open('docxsave.obj', 'wb') as f:
@@ -203,8 +209,8 @@ with open('docxsave.obj', 'rb') as f:
 # with open('docxsave.obj', 'wb') as f:
 #     f.write(pickle.dumps(docx_monsters_dict))
 #     f.close()
-with open('stories.obj', 'rb') as stories_file:
-    stories = pickle.loads(stories_file.read())
-    for story in stories:
-        print(story)
-        input()
+# with open('stories.obj', 'rb') as stories_file:
+#     stories = pickle.loads(stories_file.read())
+#     for story in stories:
+#         print(story)
+#         input()
