@@ -6,13 +6,13 @@ import pickle
 from Monster import translate_to_iso_codes
 
 dist_folder = 'story_dist'
-module_name = 'King'
+module_name = 'Tomb'
 only_assemble_files = False
-module_file_name = 'King.mod'
+module_file_name = '%s.mod' % module_name
 fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
 
 
-def create_definition_xml(name, author='KY'):
+def create_definition_xml(name, author='Kreodont'):
     xml_text = '''<?xml version="1.0" encoding="iso-8859-1"?>
 <root version="3.3" release="8|CoreRPG:3">
     <name>%s</name>
@@ -98,14 +98,15 @@ if __name__ == '__main__':
     purge_dist_folder()
     create_definition_xml(module_name)
     xml = build_xml()
-    index = 12
+    index = 14
 
     total_text = ''
     total_name = module_name
     with open('stories.obj', 'rb') as stories_file:
         stories = [pickle.loads(stories_file.read()), ]
+        print(stories)
         for story in stories:
-            print(len(story))
+            print(f'Story length: {len(story)}')
             story_name = module_name
             story_text = story
             total_text += story_text
