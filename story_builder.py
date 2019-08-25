@@ -87,6 +87,7 @@ def build_xml():
     root.append_under('npcdata', 'category', {"name": "Ru", "baseicon": "0", "decalicon": "0"})
     return root
 
+
 if __name__ == '__main__':
     if only_assemble_files:
         zip_file = zipfile.ZipFile(module_file_name, 'w', zipfile.ZIP_DEFLATED)
