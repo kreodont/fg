@@ -294,17 +294,17 @@ def reduce_text_blocks(accumulator: Accumulator, next_block: TextBlock):
     print(next_block)
     print(f'At page: {accumulator.current_page}')
 
-    if is_new_normal_block_started(accumulator.previous_block_type, next_block):
-        accumulator.current_article_text += '<p>'
-
     if is_normal_text_block_ended(accumulator.previous_block_type, next_block):
         accumulator.current_article_text += '</p>\r\n'
 
-    if is_header_block_started(accumulator.previous_block_type, next_block):
-        accumulator.current_article_text += '<h>'
-
     if is_header_block_ended(accumulator.previous_block_type, next_block):
         accumulator.current_article_text += '</h>\r\n'
+
+    if is_new_normal_block_started(accumulator.previous_block_type, next_block):
+        accumulator.current_article_text += '<p>'
+
+    if is_header_block_started(accumulator.previous_block_type, next_block):
+        accumulator.current_article_text += '<h>'
 
     accumulator.current_article_text += handle_normal_text(next_block)
 
