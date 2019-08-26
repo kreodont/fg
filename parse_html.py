@@ -4,6 +4,46 @@ Fantasy Ground module structure
 python C:\\Users\\Dima\\pdfminer.six\\tools\\pdf2txt.py -o tomb_exported.html
 "C:\\YandexDisk\\DnD\\Гробница Аннигиляции.pdf"
 Result - object file with list of Fantasy Grounds formatted text
+
+Tags:
+p - Indicates paragraph using normal formatting.
+
+h - Indicates a paragraph using header formatting.
+
+frame - Indicates a paragraph using chat frame formatting.
+
+frameid - Used within the frame tag, immediately following the frame open tag.
+Indicates the speaker for chat text.
+
+list - Indicates a list.
+
+li - Used within the list tag. Supports a numerical indent attribute.
+Indicates an entry in the list, and contains the text to display for
+this list item.
+
+linklist - Indicates a list of shortcut links.
+(similar to windowreferencecontrols)
+
+link - Used within the linklist tag. Supports a numerical indent attribute.
+Indicates an entry in the link text, and contains the text to display next
+to the link.
+
+b - Used within p, li or link tags. Indicates that the text within
+the tags should be bold.
+
+i - Used within p, li or link tags. Indicates that the text within
+the tags should be italicized.
+
+u - Used within p, li or link tags. Indicates that the text within the
+tags should be underlined.
+
+table - Indicates a table. Tables can not be created or edited, only
+accessed via modules created outside of FG.
+
+tr - Used within the table tag. Indicates a table row.
+
+td - Used within the tr tag. Supports a colspan attribute, similar to HTML
+formatting. Indicates a table cell, and the text to display within the cell.
 """
 
 from dataclasses import dataclass
@@ -50,6 +90,7 @@ class Accumulator:
     book_started: bool = False
     current_article_text: str = ''
     current_text_block_number: int = 0
+    temporary_article: str = ''
 
 
 def get_font_family(style_string: str) -> Union[str, Error]:
@@ -134,7 +175,7 @@ def get_page_blocks(
             return pickle.loads(open(cache_file_name, 'rb').read())
         except (TypeError, EOFError):
             pass
-    initial_html_file_name = f"./{module_name}.html"
+    initial_html_file_name = f"./{name}.html"
     file_text = get_file_text(initial_html_file_name)
     # I found no way to pickle soup object due to high level of recursion
     print('Starting parsing html')
@@ -256,6 +297,26 @@ def is_bold_block_ended(
     return False
 
 
+def is_new_italic_block_started(
+        previous_block: TextBlock,
+        current_block: TextBlock,
+) -> bool:
+    if not is_block_an_itallic(previous_block) and \
+            is_block_an_itallic(current_block):
+        return True
+    return False
+
+
+def is_italic_block_ended(
+        previous_block: TextBlock,
+        current_block: TextBlock,
+) -> bool:
+    if is_block_an_itallic(previous_block) and \
+            not is_block_an_itallic(current_block):
+        return True
+    return False
+
+
 def is_normal_text_block_ended(
         previous_block_type: str,
         current_block: TextBlock,
@@ -284,14 +345,25 @@ def is_header_block_ended(
     return False
 
 
-def handle_normal_text(text_block: TextBlock) -> str:
+def handle_normal_text(text_block: TextBlock, previous_text_block: TextBlock) -> str:
     text_to_return = text_block.text
+
     # text_to_return = text_to_return.strip()
+    if previous_text_block.text.endswith('.\n'):
+        text_to_return = '.' + text_to_return
+
     text_to_return = text_to_return.replace('\n', '')
+    text_to_return = restich_string(text_to_return)
+    if previous_text_block.text.endswith('.\n') and text_to_return.startswith('.'):
+        text_to_return = text_to_return[1:]
     # if not text_to_return.endswith(' '):
     #     text_to_return += ' '
 
     return text_to_return
+
+
+def restich_string(input_string: str) -> str:
+    return re.sub(r'(\.)([А-Я])+', r'\g<1>\\r\\n\g<2>', input_string)
 
 
 def reduce_text_blocks(accumulator: Accumulator, current_block: TextBlock):
@@ -330,6 +402,9 @@ def reduce_text_blocks(accumulator: Accumulator, current_block: TextBlock):
     if is_header_block_ended(accumulator.previous_block_type, current_block):
         accumulator.current_article_text += '</h>\r\n'
 
+    if is_italic_block_ended(accumulator.previous_block, current_block):
+        accumulator.current_article_text += '</i>'
+
     if is_bold_block_ended(accumulator.previous_block, current_block):
         accumulator.current_article_text += '</b>'
 
@@ -345,7 +420,10 @@ def reduce_text_blocks(accumulator: Accumulator, current_block: TextBlock):
     if is_new_bold_block_started(accumulator.previous_block, current_block):
         accumulator.current_article_text += '<b>'
 
-    accumulator.current_article_text += handle_normal_text(current_block)
+    if is_new_italic_block_started(accumulator.previous_block, current_block):
+        accumulator.current_article_text += '<i>'
+
+    accumulator.current_article_text += handle_normal_text(current_block, accumulator.previous_block)
 
     accumulator.previous_font_family = get_font_family(current_block.style)
     accumulator.previous_font_size = get_font_size(current_block.style)
@@ -366,4 +444,5 @@ if __name__ == '__main__':
             text_blocks,
             Accumulator([], 0, '', 0, TextBlock('', '')),
     )
+    articles.current_article_text += '</p>'
     print(articles)
