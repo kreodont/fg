@@ -446,3 +446,6 @@ if __name__ == '__main__':
     )
     articles.current_article_text += '</p>'
     print(articles)
+
+    with open('stories.obj', 'wb') as f:
+        f.write(pickle.dumps(articles.current_article_text))
