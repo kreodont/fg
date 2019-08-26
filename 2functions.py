@@ -64,3 +64,8 @@ def translate_from_iso_codes(text):
         output_text = output_text.replace(letter, ru_letter)
 
     return output_text
+
+
+if __name__ == '__main__':
+    result = translate_to_iso_codes('Что-нибудь ещё')
+    print(result)

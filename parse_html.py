@@ -5,6 +5,7 @@ python C:\\Users\\Dima\\pdfminer.six\\tools\\pdf2txt.py -o tomb_exported.html
 "C:\\YandexDisk\\DnD\\Гробница Аннигиляции.pdf"
 Result - object file with list of Fantasy Grounds formatted text
 """
+
 from dataclasses import dataclass
 from typing import Union, List
 import bs4
@@ -44,9 +45,11 @@ class Accumulator:
     current_page: int
     previous_font_family: str
     previous_font_size: int
+    previous_block: TextBlock
     previous_block_type: str = 'null'
     book_started: bool = False
     current_article_text: str = ''
+    current_text_block_number: int = 0
 
 
 def get_font_family(style_string: str) -> Union[str, Error]:
@@ -147,14 +150,14 @@ def get_page_blocks(
 def is_block_a_header(text_block: TextBlock):
     font_family = get_font_family(text_block.style)
     font_size = get_font_size(text_block.style)
-    if font_family == 'YGSRYS':
-        return True
+    # if font_family == 'YGSRYS':
+    #     return True
     if (font_family, font_size) in \
             (
-                    ('WCDQSB', 12),
-                    # ("YGSRYS", 28),
-                    # ("YGSRYS", 20),
-             ):
+                    # ('WCDQSB', 12),
+                    ("YGSRYS", 28),
+                    ("YGSRYS", 20),
+            ):
         return True
     return False
 
@@ -168,7 +171,7 @@ def is_block_a_normal_text(text_block: TextBlock):
                     ("EFQWEG", 105),
                     ("LKERYS", 11),
 
-             ):
+            ):
         return True
     return False
 
@@ -191,6 +194,10 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
     if isinstance(font_family, Error) or isinstance(font_size, Error):
         return True
     if font_family == 'GARIGC' and text_block.text.strip() == '-':
+        return True
+    if font_family == 'TWFNGC' and font_size == 10:  # new page
+        return True
+    if font_family == 'YGSRYS' and font_size == 28:  # out of text header
         return True
     if is_block_a_normal_text(text_block) and text_block.text.strip() == '-':
         return True
@@ -227,6 +234,24 @@ def is_new_normal_block_started(
 ) -> bool:
     if previous_block_type in ('Header', 'null') and \
             not is_block_a_header(current_block):
+        return True
+    return False
+
+
+def is_new_bold_block_started(
+        previous_block: TextBlock,
+        current_block: TextBlock,
+) -> bool:
+    if not is_block_is_bold(previous_block) and is_block_is_bold(current_block):
+        return True
+    return False
+
+
+def is_bold_block_ended(
+        previous_block: TextBlock,
+        current_block: TextBlock,
+) -> bool:
+    if is_block_is_bold(previous_block) and not is_block_is_bold(current_block):
         return True
     return False
 
@@ -269,21 +294,23 @@ def handle_normal_text(text_block: TextBlock) -> str:
     return text_to_return
 
 
-def reduce_text_blocks(accumulator: Accumulator, next_block: TextBlock):
-    if is_block_should_be_completely_ignored(next_block):
-        return accumulator
+def reduce_text_blocks(accumulator: Accumulator, current_block: TextBlock):
+    accumulator.current_text_block_number += 1
 
     new_page = is_page_block_a_page_number(
-            next_block,
+            current_block,
             "TWFNGC",
             10,
     )
     if new_page:
         accumulator.current_page = new_page
 
+    if is_block_should_be_completely_ignored(current_block):
+        return accumulator
+
     # This is specific for Tomb of Anihilation
-    if next_block.text.strip() == 'Ч' \
-            and get_font_size(next_block.style) == 105:
+    if current_block.text.strip() == 'Ч' \
+            and get_font_size(current_block.style) == 105:
         accumulator.current_page = 5
         accumulator.book_started = True
 
@@ -291,30 +318,43 @@ def reduce_text_blocks(accumulator: Accumulator, next_block: TextBlock):
         return accumulator
 
     print('-----------------------------------------------------------------')
-    print(next_block)
+    print(current_block)
     print(f'At page: {accumulator.current_page}')
 
-    if is_normal_text_block_ended(accumulator.previous_block_type, next_block):
+    if is_normal_text_block_ended(
+            accumulator.previous_block_type,
+            current_block,
+    ):
         accumulator.current_article_text += '</p>\r\n'
 
-    if is_header_block_ended(accumulator.previous_block_type, next_block):
+    if is_header_block_ended(accumulator.previous_block_type, current_block):
         accumulator.current_article_text += '</h>\r\n'
 
-    if is_new_normal_block_started(accumulator.previous_block_type, next_block):
-        accumulator.current_article_text += '<p>'
+    if is_bold_block_ended(accumulator.previous_block, current_block):
+        accumulator.current_article_text += '</b>'
 
-    if is_header_block_started(accumulator.previous_block_type, next_block):
+    if is_header_block_started(accumulator.previous_block_type, current_block):
         accumulator.current_article_text += '<h>'
 
-    accumulator.current_article_text += handle_normal_text(next_block)
+    if is_new_normal_block_started(
+            accumulator.previous_block_type,
+            current_block,
+    ):
+        accumulator.current_article_text += '<p>'
 
-    accumulator.previous_font_family = get_font_family(next_block.style)
-    accumulator.previous_font_size = get_font_size(next_block.style)
-    if is_block_a_header(next_block):
+    if is_new_bold_block_started(accumulator.previous_block, current_block):
+        accumulator.current_article_text += '<b>'
+
+    accumulator.current_article_text += handle_normal_text(current_block)
+
+    accumulator.previous_font_family = get_font_family(current_block.style)
+    accumulator.previous_font_size = get_font_size(current_block.style)
+    if is_block_a_header(current_block):
         accumulator.previous_block_type = 'Header'
     else:
         accumulator.previous_block_type = 'Normal'
 
+    accumulator.previous_block = current_block
     return accumulator
 
 
@@ -324,6 +364,6 @@ if __name__ == '__main__':
     articles = functools.reduce(
             reduce_text_blocks,
             text_blocks,
-            Accumulator([], 0, '', 0),
+            Accumulator([], 0, '', 0, TextBlock('', '')),
     )
     print(articles)
