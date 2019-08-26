@@ -261,7 +261,7 @@ def is_header_block_ended(
 
 def handle_normal_text(text_block: TextBlock) -> str:
     text_to_return = text_block.text
-    text_to_return = text_to_return.strip()
+    # text_to_return = text_to_return.strip()
     text_to_return = text_to_return.replace('\n', '')
     # if not text_to_return.endswith(' '):
     #     text_to_return += ' '
