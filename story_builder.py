@@ -3,7 +3,7 @@ import shutil
 from FgXml import FgXml
 import zipfile
 import pickle
-from Monster import translate_to_iso_codes
+from fg_translations import translate_to_iso_codes
 
 dist_folder = 'story_dist'
 # module_name = 'Tomb'
