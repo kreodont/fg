@@ -437,11 +437,11 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     if is_header_block_ended(acc.previous_block, current_block):
         text_to_be_added += '</h>'
 
-    # if is_italic_block_ended(acc.previous_block, current_block):
-    #     text_to_be_added += '</i>'
-    #
-    # if is_bold_block_ended(acc.previous_block, current_block):
-    #     text_to_be_added += '</b>'
+    if is_italic_block_ended(acc.previous_block, current_block):
+        text_to_be_added += '</i>'
+
+    if is_bold_block_ended(acc.previous_block, current_block):
+        text_to_be_added += '</b>'
 
     if is_header_block_started(acc.previous_block, current_block):
         text_to_be_added += '<h>'
@@ -449,11 +449,11 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     if is_new_normal_block_started(acc.previous_block, current_block):
         text_to_be_added += '<p>'
 
-    # if is_new_bold_block_started(acc.previous_block, current_block):
-    #     text_to_be_added += '<b>'
-    #
-    # if is_new_italic_block_started(acc.previous_block, current_block):
-    #     text_to_be_added += '<i>'
+    if is_new_bold_block_started(acc.previous_block, current_block):
+        text_to_be_added += '<b>'
+
+    if is_new_italic_block_started(acc.previous_block, current_block):
+        text_to_be_added += '<i>'
 
     text_to_be_added += current_block.text
     acc.current_article_text += transform_text(text_to_be_added, previous_text)
