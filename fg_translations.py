@@ -22,7 +22,7 @@ def only_roman_chars(unistr: str) -> bool:
 #                         '’': '&#8217;', '–': '&#8211;'}
 
 special_symbols_dict = {'ё': '&#184;', 'Ё': '&#184;', '&': '&#38;',
-                        '•': '&#8226;', '—': '-', '−': '-',
+                        '•': ' -- ', '—': '-', '−': '-',
                         '’': '&#8217;', '–': '-'}
 
 code_to_special_symbols_dict = {v: k for k, v in special_symbols_dict.items()}
