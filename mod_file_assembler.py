@@ -178,7 +178,7 @@ def create_common_xml(
                 value=translate_to_iso_codes(story),
         )
 
-        print(story)
+        print(f'\n\n{story}\n\n')
 
     with open('%s/common.xml' % dist_folder, 'w') as output_file:
         output_file.write(str(xml_template))
@@ -199,7 +199,7 @@ if __name__ == '__main__':
             module_name=module_name_,
             dist_folder=dist_folder_name_,
             # stories_list=['xexexe'],
-            stories_list=get_stories(module_name_, (600, 800)),
+            stories_list=get_stories(module_name_, (900, 1100)),
     )
     module_file_name = zipdir(module_name_, dist_folder_name_)
     print(f'Packed {dist_folder_name_} to {module_file_name}')

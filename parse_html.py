@@ -250,7 +250,7 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
     font_size = get_font_size(text_block.style)
     if isinstance(font_family, Error) or isinstance(font_size, Error):
         return True
-    if font_family == 'GARIGC' and text_block.text.strip() == '-':
+    if font_family in ('GARIGC', 'TANMCH') and text_block.text.strip() == '-':
         return True
     if font_family == 'TWFNGC' and font_size == 10:  # new page
         return True
@@ -379,6 +379,7 @@ def transform_text(
     if delete_leading_and_ending_tags(previous_text).endswith('.\n'):
         text_to_return = '.' + text_to_return
 
+    # text_to_return = text_to_return.replace('-\r\n', '')
     text_to_return = text_to_return.replace('\n', '')
     text_to_return = restich_string(text_to_return)
     if delete_leading_and_ending_tags(previous_text).endswith('.\n') and \
@@ -495,6 +496,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    get_stories("tomb_exported", (750, 800), debug=True)
+    get_stories("tomb_exported", (900, 1100), debug=True)
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
