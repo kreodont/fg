@@ -98,7 +98,7 @@ class Accumulator:
     articles: List[str]
     current_page: int = 0
     previous_block: TextBlock = TextBlock('', '')
-    book_started: bool = False
+    # book_started: bool = False
     current_article_text: str = ''
     current_text_block_number: int = 0
     temporary_article: str = ''
@@ -203,6 +203,8 @@ def is_block_a_header(text_block: TextBlock):
                     # ('WCDQSB', 12),
                     ("YGSRYS", 28),
                     ("YGSRYS", 20),
+                    ("YGSRYS", 15),
+                    ("YGSRYS", 13),
             ):
         return True
     return False
@@ -252,8 +254,8 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
         return True
     if font_family == 'TWFNGC' and font_size == 10:  # new page
         return True
-    if font_family == 'YGSRYS' and font_size == 28:  # out of text header
-        return True
+    # if font_family == 'YGSRYS' and font_size == 28:  # out of text header
+    #     return True
     if is_block_a_normal_text(text_block) and text_block.text.strip() == '-':
         return True
     return False
@@ -413,15 +415,15 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     text_to_be_added = ''
 
     # This is specific for Tomb of Anihilation
-    if current_block.text.strip() == 'Ч' \
-            and get_font_size(current_block.style) == 105:
-        acc.current_page = 5
-        text_to_be_added = '<p>'
-        acc.book_started = True
+    # if current_block.text.strip() == 'Ч' \
+    #         and get_font_size(current_block.style) == 105:
+    #     acc.current_page = 5
+    #     text_to_be_added = '<p>'
+    #     acc.book_started = True
 
-    if acc.book_started is False:  # do nothing until book starts
-        acc.previous_block = current_block
-        return acc
+    # if acc.book_started is False:  # do nothing until book starts
+    #     acc.previous_block = current_block
+    #     return acc
 
     if acc.debug:
         print('--------------------------------------'
@@ -466,24 +468,33 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
 
 
 @maybe
-def get_stories(mod_name: str, limit_blocks: int = 0) -> List[str]:
+def get_stories(
+        mod_name: str,
+        blocks_from_to: tuple = (),
+        debug: bool = False,
+) -> List[str]:
     text_blocks = get_page_blocks(mod_name)
-    if limit_blocks:
-        text_blocks = text_blocks[:limit_blocks]
+    if blocks_from_to:
+        text_blocks = text_blocks[blocks_from_to[0]:blocks_from_to[1]]
 
     articles = functools.reduce(
             reduce_text_blocks,
             text_blocks,
-            Accumulator([]),
+            Accumulator([], debug=debug),
     )
+    if articles.current_article_text and \
+            not articles.current_article_text.startswith('<p>'):
+        articles.current_article_text = '<p>' + articles.current_article_text
+
     if articles.current_article_text \
             and not articles.current_article_text.endswith('</p>'):
         articles.current_article_text += '</p>'
+
     articles.articles.append(articles.current_article_text)
     return articles.articles
 
 
 if __name__ == '__main__':
-    print(get_stories("tomb_exported", 600))
+    get_stories("tomb_exported", (750, 800), debug=True)
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
