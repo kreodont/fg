@@ -242,6 +242,15 @@ def is_block_an_itallic(text_block: TextBlock):
     return False
 
 
+def get_text_from_block(
+        previous_block: TextBlock,
+        current_block: TextBlock,
+) -> str:
+    if current_block.text.strip() == '-' and not previous_block.text.endswith(' '):
+        return ''
+    return current_block.text
+
+
 def is_block_should_be_completely_ignored(text_block: TextBlock):
     if isinstance(text_block, Error):
         return False
@@ -250,14 +259,14 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
     font_size = get_font_size(text_block.style)
     if isinstance(font_family, Error) or isinstance(font_size, Error):
         return True
-    if font_family in ('GARIGC', 'TANMCH') and text_block.text.strip() == '-':
-        return True
+    # if font_family in ('GARIGC', 'TANMCH') and text_block.text.strip() == '-':
+    #     return True
     if font_family == 'TWFNGC' and font_size == 10:  # new page
         return True
     # if font_family == 'YGSRYS' and font_size == 28:  # out of text header
     #     return True
-    if is_block_a_normal_text(text_block) and text_block.text.strip() == '-':
-        return True
+    # if is_block_a_normal_text(text_block) and text_block.text.strip() == '-':
+    #     return True
     return False
 
 
@@ -458,7 +467,7 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     if is_new_italic_block_started(acc.previous_block, current_block):
         text_to_be_added += '<i>'
 
-    text_to_be_added += current_block.text
+    text_to_be_added += get_text_from_block(acc.previous_block, current_block)
     acc.current_article_text += transform_text(text_to_be_added, previous_text)
 
     acc.previous_font_family = get_font_family(current_block.style)

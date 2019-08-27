@@ -17,6 +17,17 @@ def only_roman_chars(unistr: str) -> bool:
     return all(is_latin(uchr) for uchr in unistr if uchr.isalpha())
 
 
+# special_symbols_dict = {'ё': '&#184;', 'Ё': '&#184;', '&': '&#38;',
+#                         '•': '&#8226;', '—': '&#8212;', '−': '&#8722;',
+#                         '’': '&#8217;', '–': '&#8211;'}
+
+special_symbols_dict = {'ё': '&#184;', 'Ё': '&#184;', '&': '&#38;',
+                        '•': '&#8226;', '—': '-', '−': '-',
+                        '’': '&#8217;', '–': '-'}
+
+code_to_special_symbols_dict = {v: k for k, v in special_symbols_dict.items()}
+
+
 def translate_to_iso_codes(text: str) -> str:
     first_letter_code = 192
     all_letters = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ' \
@@ -24,12 +35,12 @@ def translate_to_iso_codes(text: str) -> str:
     result_text = ''
 
     for char in text:
-        if char == 'ё':
-            result_text += '&#184;'
-        elif char == 'Ё':
-            result_text += '&#168;'
-        elif char == '&':
-            result_text += '&#38;'
+        if char in special_symbols_dict:
+            result_text += special_symbols_dict[char]
+        # elif char == 'Ё':
+        #     result_text += '&#168;'
+        # elif char == '&':
+        #     result_text += '&#38;'
         elif char in all_letters:
             char_position = all_letters.index(char)
             code = first_letter_code + char_position
@@ -62,20 +73,22 @@ def translate_from_iso_codes(text):
     output_text = text
     letters = re.findall('&#.+?;', text)
     for letter in letters:
-        if letter == '&#8226;':
-            ru_letter = '•'
-        elif letter == '&#8212;':
-            ru_letter = '—'
-        elif letter == '&#8722;':
-            ru_letter = '−'
-        elif letter == '&#8217;':
-            ru_letter = '’'
-        elif letter == '&#8211;':
-            ru_letter = '–'
-        elif letter == '&#184;':
-            ru_letter = 'ё'
-        elif letter == '&#184;':
-            ru_letter = 'Ё'
+        if letter in code_to_special_symbols_dict:
+            ru_letter = code_to_special_symbols_dict[letter]
+        # if letter == '&#8226;':
+        #     ru_letter = '•'
+        # elif letter == '&#8212;':
+        #     ru_letter = '—'
+        # elif letter == '&#8722;':
+        #     ru_letter = '−'
+        # elif letter == '&#8217;':
+        #     ru_letter = '’'
+        # elif letter == '&#8211;':
+        #     ru_letter = '–'
+        # elif letter == '&#184;':
+        #     ru_letter = 'ё'
+        # elif letter == '&#184;':
+        #     ru_letter = 'Ё'
         else:
             letter_number = int(letter[2:-1]) - 192
             ru_letter = russian_letters[letter_number]
