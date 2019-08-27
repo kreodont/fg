@@ -6,10 +6,11 @@ import pickle
 from Monster import translate_to_iso_codes
 
 dist_folder = 'story_dist'
-module_name = 'Tomb'
+# module_name = 'Tomb'
 only_assemble_files = False
-module_file_name = '%s.mod' % module_name
-fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules'
+# module_file_name = '%s.mod' % module_name
+# fantasy_grounds_folder = 'C:/Users/Dima/Dropbox/Fantasy Grounds/modules' # win
+fantasy_grounds_folder = '/Users/dima/Dropbox/Fantasy Grounds/modules'  # mac
 
 
 def create_definition_xml(name, author='Kreodont'):
@@ -53,7 +54,7 @@ def zipdir(path, ziph, exceptions=()):
             ziph.write(full_path, full_path_without_folder_name)
 
 
-def build_xml():
+def build_xml(module_name):
     root = FgXml(module_name)
     root.append_under('root', 'library')
     root.append_under('library', 'russian_bestiary')
@@ -89,6 +90,8 @@ def build_xml():
 
 
 if __name__ == '__main__':
+    module_name = 'Tomb'
+    module_file_name = '%s.mod' % module_name
     if only_assemble_files:
         zip_file = zipfile.ZipFile(module_file_name, 'w', zipfile.ZIP_DEFLATED)
         zipdir(dist_folder, zip_file)
@@ -98,7 +101,7 @@ if __name__ == '__main__':
 
     purge_dist_folder()
     create_definition_xml(module_name)
-    xml = build_xml()
+    xml = build_xml(module_name)
     index = 14
 
     total_text = ''
@@ -132,5 +135,8 @@ if __name__ == '__main__':
     zip_file = zipfile.ZipFile(module_file_name, 'w', zipfile.ZIP_DEFLATED)
     zipdir(dist_folder, zip_file)
     zip_file.close()
+    print(f'Copying {module_file_name} to {fantasy_grounds_folder}')
 
     shutil.copy(module_file_name, fantasy_grounds_folder)
+    print('Done')
+

@@ -63,6 +63,25 @@ class Error:
         return f'Error: {self.text}'
 
 
+def get_font_family(style_string: str) -> Union[str, Error]:
+    tokens = re.findall("font-family: b'(.+)\+.+font-size:(\d+)px",
+                        style_string)
+    if not tokens or len(tokens) != 1 or len(tokens[0]) != 2:
+        return Error(f'Cannot parse string: {style_string}\n'
+                     f'Found {len(tokens)} tokens instead of 2: {tokens}')
+    return tokens[0][0]
+
+
+def get_font_size(style_string: str) -> Union[int, Error]:
+    tokens = re.findall("font-family: b'(.+)\+.+font-size:(\d+)px",
+                        style_string)
+    if not tokens or len(tokens) != 1 or len(tokens[0]) != 2:
+        return Error(f'Cannot parse string: {style_string}\n'
+                     f'Found {len(tokens)} tokens instead of 2: {tokens}')
+
+    return int(tokens[0][1])
+
+
 @dataclass
 class TextBlock:
     text: str
@@ -82,34 +101,24 @@ class Article:
 @dataclass
 class Accumulator:
     articles: List[Article]
-    current_page: int
-    previous_font_family: str
-    previous_font_size: int
-    previous_block: TextBlock
-    previous_block_type: str = 'null'
+    current_page: int = 0
+    # previous_font_family: str
+    # previous_font_size: int
+    previous_block: TextBlock = TextBlock('', '')
+    # previous_block_type: str = 'null'
     book_started: bool = False
     current_article_text: str = ''
     current_text_block_number: int = 0
     temporary_article: str = ''
 
 
-def get_font_family(style_string: str) -> Union[str, Error]:
-    tokens = re.findall("font-family: b'(.+)\+.+font-size:(\d+)px",
-                        style_string)
-    if not tokens or len(tokens) != 1 or len(tokens[0]) != 2:
-        return Error(f'Cannot parse string: {style_string}\n'
-                     f'Found {len(tokens)} tokens instead of 2: {tokens}')
-    return tokens[0][0]
-
-
-def get_font_size(style_string: str) -> Union[int, Error]:
-    tokens = re.findall("font-family: b'(.+)\+.+font-size:(\d+)px",
-                        style_string)
-    if not tokens or len(tokens) != 1 or len(tokens[0]) != 2:
-        return Error(f'Cannot parse string: {style_string}\n'
-                     f'Found {len(tokens)} tokens instead of 2: {tokens}')
-
-    return int(tokens[0][1])
+# def get_font_family(style_string: str) -> Union[str, Error]:
+#     tokens = re.findall("font-family: b'(.+)\+.+font-size:(\d+)px",
+#                         style_string)
+#     if not tokens or len(tokens) != 1 or len(tokens[0]) != 2:
+#         return Error(f'Cannot parse string: {style_string}\n'
+#                      f'Found {len(tokens)} tokens instead of 2: {tokens}')
+#     return tokens[0][0]
 
 
 def is_page_block_a_page_number(
@@ -270,10 +279,10 @@ def is_block_is_bold(text_block: TextBlock):
 
 
 def is_new_normal_block_started(
-        previous_block_type: str,
+        previous_block: TextBlock,
         current_block: TextBlock,
 ) -> bool:
-    if previous_block_type in ('Header', 'null') and \
+    if is_block_a_header(previous_block) and \
             not is_block_a_header(current_block):
         return True
     return False
@@ -318,43 +327,49 @@ def is_italic_block_ended(
 
 
 def is_normal_text_block_ended(
-        previous_block_type: str,
+        previous_block: TextBlock,
         current_block: TextBlock,
 ) -> bool:
-    if previous_block_type == 'Normal' and is_block_a_header(current_block):
+    if not is_block_a_header(previous_block) and \
+            is_block_a_header(current_block):
         return True
     return False
 
 
 def is_header_block_started(
-        previous_block_type: str,
+        previous_block: TextBlock,
         current_block: TextBlock,
 ) -> bool:
-    if previous_block_type in ('Normal', 'null') and \
+    if not is_block_a_header(previous_block) and \
             is_block_a_header(current_block):
         return True
     return False
 
 
 def is_header_block_ended(
-        previous_block_type: str,
+        previous_block: TextBlock,
         current_block: TextBlock,
 ) -> bool:
-    if previous_block_type == 'Header' and not is_block_a_header(current_block):
+    if is_block_a_header(previous_block) and \
+            not is_block_a_header(current_block):
         return True
     return False
 
 
-def handle_normal_text(text_block: TextBlock, previous_text_block: TextBlock) -> str:
-    text_to_return = text_block.text
+def transform_text(
+        current_text: str,
+        previous_text: str,
+) -> str:
+    text_to_return = current_text
 
     # text_to_return = text_to_return.strip()
-    if previous_text_block.text.endswith('.\n'):
+    if delete_leading_and_ending_tags(previous_text).endswith('.\n'):
         text_to_return = '.' + text_to_return
 
     text_to_return = text_to_return.replace('\n', '')
     text_to_return = restich_string(text_to_return)
-    if previous_text_block.text.endswith('.\n') and text_to_return.startswith('.'):
+    if delete_leading_and_ending_tags(previous_text).endswith('.\n') and \
+            text_to_return.startswith('.'):
         text_to_return = text_to_return[1:]
     # if not text_to_return.endswith(' '):
     #     text_to_return += ' '
@@ -362,12 +377,16 @@ def handle_normal_text(text_block: TextBlock, previous_text_block: TextBlock) ->
     return text_to_return
 
 
+def delete_leading_and_ending_tags(string):
+    return re.sub(r'(</?.+?>)+', '', string)
+
+
 def restich_string(input_string: str) -> str:
-    return re.sub(r'(\.)([А-Я])+', r'\g<1>\\r\\n\g<2>', input_string)
+    return re.sub(r'(\.)([А-Я])+', r'\g<1></p><p>\g<2>', input_string)
 
 
-def reduce_text_blocks(accumulator: Accumulator, current_block: TextBlock):
-    accumulator.current_text_block_number += 1
+def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
+    acc.current_text_block_number += 1
 
     new_page = is_page_block_a_page_number(
             current_block,
@@ -375,65 +394,64 @@ def reduce_text_blocks(accumulator: Accumulator, current_block: TextBlock):
             10,
     )
     if new_page:
-        accumulator.current_page = new_page
+        acc.current_page = new_page
 
     if is_block_should_be_completely_ignored(current_block):
-        return accumulator
+        return acc
 
     # This is specific for Tomb of Anihilation
     if current_block.text.strip() == 'Ч' \
             and get_font_size(current_block.style) == 105:
-        accumulator.current_page = 5
-        accumulator.book_started = True
+        acc.current_page = 5
+        acc.book_started = True
 
-    if accumulator.book_started is False:  # do nothing until book starts
-        return accumulator
+    if acc.book_started is False:  # do nothing until book starts
+        return acc
 
     print('-----------------------------------------------------------------')
     print(current_block)
-    print(f'At page: {accumulator.current_page}')
+    print(f'At page: {acc.current_page}')
 
-    if is_normal_text_block_ended(
-            accumulator.previous_block_type,
-            current_block,
-    ):
-        accumulator.current_article_text += '</p>\r\n'
+    text_to_be_added = ''
+    previous_text = acc.previous_block.text
 
-    if is_header_block_ended(accumulator.previous_block_type, current_block):
-        accumulator.current_article_text += '</h>\r\n'
+    if is_normal_text_block_ended(acc.previous_block, current_block):
+        text_to_be_added += '</p>'
 
-    if is_italic_block_ended(accumulator.previous_block, current_block):
-        accumulator.current_article_text += '</i>'
+    if is_header_block_ended(acc.previous_block, current_block):
+        text_to_be_added += '</h>'
 
-    if is_bold_block_ended(accumulator.previous_block, current_block):
-        accumulator.current_article_text += '</b>'
+    # if is_italic_block_ended(acc.previous_block, current_block):
+    #     text_to_be_added += '</i>'
+    #
+    # if is_bold_block_ended(acc.previous_block, current_block):
+    #     text_to_be_added += '</b>'
 
-    if is_header_block_started(accumulator.previous_block_type, current_block):
-        accumulator.current_article_text += '<h>'
+    if is_header_block_started(acc.previous_block, current_block):
+        text_to_be_added += '<h>'
 
-    if is_new_normal_block_started(
-            accumulator.previous_block_type,
-            current_block,
-    ):
-        accumulator.current_article_text += '<p>'
+    if is_new_normal_block_started(acc.previous_block, current_block):
+        text_to_be_added += '<p>'
 
-    if is_new_bold_block_started(accumulator.previous_block, current_block):
-        accumulator.current_article_text += '<b>'
+    # if is_new_bold_block_started(acc.previous_block, current_block):
+    #     text_to_be_added += '<b>'
+    #
+    # if is_new_italic_block_started(acc.previous_block, current_block):
+    #     text_to_be_added += '<i>'
 
-    if is_new_italic_block_started(accumulator.previous_block, current_block):
-        accumulator.current_article_text += '<i>'
+    text_to_be_added += current_block.text
+    acc.current_article_text += transform_text(text_to_be_added, previous_text)
 
-    accumulator.current_article_text += handle_normal_text(current_block, accumulator.previous_block)
+    acc.previous_font_family = get_font_family(current_block.style)
+    acc.previous_font_size = get_font_size(current_block.style)
 
-    accumulator.previous_font_family = get_font_family(current_block.style)
-    accumulator.previous_font_size = get_font_size(current_block.style)
-    if is_block_a_header(current_block):
-        accumulator.previous_block_type = 'Header'
-    else:
-        accumulator.previous_block_type = 'Normal'
+    # if is_block_a_header(current_block):
+    #     acc.previous_block_type = 'Header'
+    # else:
+    #     acc.previous_block_type = 'Normal'
 
-    accumulator.previous_block = current_block
-    return accumulator
+    acc.previous_block = current_block
+    return acc
 
 
 if __name__ == '__main__':
@@ -442,7 +460,7 @@ if __name__ == '__main__':
     articles = functools.reduce(
             reduce_text_blocks,
             text_blocks,
-            Accumulator([], 0, '', 0, TextBlock('', '')),
+            Accumulator([]),
     )
     articles.current_article_text += '</p>'
     print(articles)
