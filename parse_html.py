@@ -46,7 +46,7 @@ td - Used within the tr tag. Supports a colspan attribute, similar to HTML
 formatting. Indicates a table cell, and the text to display within the cell.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Union, List
 import bs4
 import os
@@ -103,6 +103,7 @@ class Accumulator:
     current_text_block_number: int = 0
     temporary_article: str = ''
     debug: bool = False
+    currently_open_tags: list = field(default_factory=list)
 
 
 # def get_font_family(style_string: str) -> Union[str, Error]:
@@ -246,9 +247,14 @@ def get_text_from_block(
         previous_block: TextBlock,
         current_block: TextBlock,
 ) -> str:
-    if current_block.text.strip() == '-' and not previous_block.text.endswith(' '):
+    if current_block.text.strip() == '-' and \
+            not previous_block.text.endswith(' '):
         return ''
     return current_block.text
+
+
+def close_opened_tags(tags_list: List[str]) -> str:
+    return ''.join([f'</{t}>' for t in tags_list[::-1]])
 
 
 def is_block_should_be_completely_ignored(text_block: TextBlock):
@@ -259,18 +265,16 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
     font_size = get_font_size(text_block.style)
     if isinstance(font_family, Error) or isinstance(font_size, Error):
         return True
-    # if font_family in ('GARIGC', 'TANMCH') and text_block.text.strip() == '-':
-    #     return True
+    if font_family in ('GARIGC', 'TANMCH') and text_block.text.strip() == '-':
+        return True
     if font_family == 'TWFNGC' and font_size == 10:  # new page
         return True
     # if font_family == 'YGSRYS' and font_size == 28:  # out of text header
     #     return True
-    # if is_block_a_normal_text(text_block) and text_block.text.strip() == '-':
-    #     return True
     return False
 
 
-def is_block_an_annotation(text_block: TextBlock):
+def is_block_an_aloud(text_block: TextBlock):
     if isinstance(text_block, Error):
         return False
 
@@ -304,8 +308,8 @@ def is_new_normal_block_started(
         previous_block: TextBlock,
         current_block: TextBlock,
 ) -> bool:
-    if is_block_a_header(previous_block) and \
-            not is_block_a_header(current_block):
+    if not is_block_a_normal_text(previous_block) and \
+            is_block_a_normal_text(current_block):
         return True
     return False
 
@@ -344,6 +348,26 @@ def is_italic_block_ended(
 ) -> bool:
     if is_block_an_itallic(previous_block) and \
             not is_block_an_itallic(current_block):
+        return True
+    return False
+
+
+def is_new_aloud_block_started(
+        previous_block: TextBlock,
+        current_block: TextBlock,
+) -> bool:
+    if not is_block_an_aloud(previous_block) and \
+            is_block_an_aloud(current_block):
+        return True
+    return False
+
+
+def is_aloud_block_ended(
+        previous_block: TextBlock,
+        current_block: TextBlock,
+) -> bool:
+    if is_block_an_aloud(previous_block) and \
+            not is_block_an_aloud(current_block):
         return True
     return False
 
@@ -405,7 +429,8 @@ def delete_leading_and_ending_tags(string):
 
 
 def restich_string(input_string: str) -> str:
-    return re.sub(r'(\.)([А-Я])+', r'\g<1></p><p>\g<2>', input_string)
+    return re.sub(r'(\.)([А-Я])+', r'\g<1><p></p>\g<2>', input_string)
+    # return re.sub(r'(\.)([А-Я])+', r'\g<1></p><p>\g<2>', input_string)
 
 
 def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
@@ -443,29 +468,46 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
 
     previous_text = acc.previous_block.text
 
-    if is_normal_text_block_ended(acc.previous_block, current_block):
-        text_to_be_added += '</p>'
-
-    if is_header_block_ended(acc.previous_block, current_block):
-        text_to_be_added += '</h>'
-
-    if is_italic_block_ended(acc.previous_block, current_block):
-        text_to_be_added += '</i>'
-
-    if is_bold_block_ended(acc.previous_block, current_block):
-        text_to_be_added += '</b>'
+    # if is_aloud_block_ended(acc.previous_block, current_block):
+    #     text_to_be_added += '</frame>'
+    #
+    # if is_header_block_ended(acc.previous_block, current_block):
+    #     text_to_be_added += '</h>'
+    #
+    # if is_italic_block_ended(acc.previous_block, current_block):
+    #     text_to_be_added += '</i>'
+    #
+    # if is_bold_block_ended(acc.previous_block, current_block):
+    #     text_to_be_added += '</b>'
+    #
+    # if is_normal_text_block_ended(acc.previous_block, current_block):
+    #     text_to_be_added += '</p>'
 
     if is_header_block_started(acc.previous_block, current_block):
+        if acc.currently_open_tags:
+            text_to_be_added += close_opened_tags(acc.currently_open_tags)
         text_to_be_added += '<h>'
+        acc.currently_open_tags = ['h', ]
 
     if is_new_normal_block_started(acc.previous_block, current_block):
+        if acc.currently_open_tags:
+            text_to_be_added += close_opened_tags(acc.currently_open_tags)
         text_to_be_added += '<p>'
+        acc.currently_open_tags = ['p', ]
+
+    if is_new_aloud_block_started(acc.previous_block, current_block):
+        if acc.currently_open_tags:
+            text_to_be_added += close_opened_tags(acc.currently_open_tags)
+        text_to_be_added += '<frame>'
+        acc.currently_open_tags = ['frame', ]
 
     if is_new_bold_block_started(acc.previous_block, current_block):
         text_to_be_added += '<b>'
+        acc.currently_open_tags.append('b')
 
     if is_new_italic_block_started(acc.previous_block, current_block):
         text_to_be_added += '<i>'
+        acc.currently_open_tags.append('i')
 
     text_to_be_added += get_text_from_block(acc.previous_block, current_block)
     acc.current_article_text += transform_text(text_to_be_added, previous_text)
@@ -492,19 +534,21 @@ def get_stories(
             text_blocks,
             Accumulator([], debug=debug),
     )
-    if articles.current_article_text and \
-            not articles.current_article_text.startswith('<p>'):
-        articles.current_article_text = '<p>' + articles.current_article_text
+    # if articles.current_article_text and \
+    #         not articles.current_article_text.startswith('<p>'):
+    #     articles.current_article_text = '<p>' + articles.current_article_text
+    #
+    # if articles.current_article_text \
+    #         and not articles.current_article_text.endswith('</p>'):
+    #     articles.current_article_text += '</p>'
 
-    if articles.current_article_text \
-            and not articles.current_article_text.endswith('</p>'):
-        articles.current_article_text += '</p>'
-
+    articles.current_article_text += close_opened_tags(
+            articles.currently_open_tags)
     articles.articles.append(articles.current_article_text)
     return articles.articles
 
 
 if __name__ == '__main__':
-    get_stories("tomb_exported", (900, 1100), debug=True)
+    get_stories("tomb_exported", (620, 650), debug=True)
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
