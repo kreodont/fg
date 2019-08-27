@@ -8,6 +8,7 @@ import zipfile
 from typing import List
 from FgXml import FgXml
 from fg_translations import translate_to_iso_codes
+from parse_html import get_stories
 
 
 def define_fg_folder(os_type: str) -> str:
@@ -187,16 +188,23 @@ def create_common_xml(
 
 if __name__ == '__main__':
     module_name_ = 'tomb_rus'
+    print(f'Module name: "{module_name_}"')
     dist_folder_name_ = f'{module_name_}_dist'
+    print(f'Creating folder "{dist_folder_name_}"')
     create_dist_folder(dist_folder_name_)
+    print('Creating definition.xml')
     create_definition_xml(module_name_, dist_folder_name_)
+    print('Creating common.xml')
     create_common_xml(
             module_name=module_name_,
-            dist_folder=dist_folder_name_, 
-            stories_list=['hahaha', ],
+            dist_folder=dist_folder_name_,
+            # stories_list=['xexexe'],
+            stories_list=get_stories(module_name_, 600),
     )
     module_file_name = zipdir(module_name_, dist_folder_name_)
+    print(f'Packed {dist_folder_name_} to {module_file_name}')
     destination_folder_ = define_fg_folder("mac")
-    print(f'Copying {module_file_name} to {destination_folder_}')
+    print(f'Copying {module_file_name} '
+          f'to {destination_folder_}/{module_file_name}')
     copy_mod_file_to_fg_folder(module_file_name, destination_folder_)
     print('Done')

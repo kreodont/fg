@@ -28,6 +28,8 @@ def translate_to_iso_codes(text: str) -> str:
             result_text += '&#184;'
         elif char == 'Ё':
             result_text += '&#168;'
+        elif char == '&':
+            result_text += 'and'
         elif char in all_letters:
             char_position = all_letters.index(char)
             code = first_letter_code + char_position

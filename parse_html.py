@@ -94,22 +94,15 @@ class TextBlock:
 
 
 @dataclass
-class Article:
-    text: str
-
-
-@dataclass
 class Accumulator:
-    articles: List[Article]
+    articles: List[str]
     current_page: int = 0
-    # previous_font_family: str
-    # previous_font_size: int
     previous_block: TextBlock = TextBlock('', '')
-    # previous_block_type: str = 'null'
     book_started: bool = False
     current_article_text: str = ''
     current_text_block_number: int = 0
     temporary_article: str = ''
+    debug: bool = False
 
 
 # def get_font_family(style_string: str) -> Union[str, Error]:
@@ -198,6 +191,9 @@ def get_page_blocks(
 
 
 def is_block_a_header(text_block: TextBlock):
+    if isinstance(text_block, Error):
+        return False
+
     font_family = get_font_family(text_block.style)
     font_size = get_font_size(text_block.style)
     # if font_family == 'YGSRYS':
@@ -213,6 +209,9 @@ def is_block_a_header(text_block: TextBlock):
 
 
 def is_block_a_normal_text(text_block: TextBlock):
+    if isinstance(text_block, Error):
+        return False
+
     font_family = get_font_family(text_block.style)
     font_size = get_font_size(text_block.style)
     if (font_family, font_size) in \
@@ -227,6 +226,9 @@ def is_block_a_normal_text(text_block: TextBlock):
 
 
 def is_block_an_itallic(text_block: TextBlock):
+    if isinstance(text_block, Error):
+        return False
+
     font_family = get_font_family(text_block.style)
     font_size = get_font_size(text_block.style)
     if (font_family, font_size) in \
@@ -239,6 +241,9 @@ def is_block_an_itallic(text_block: TextBlock):
 
 
 def is_block_should_be_completely_ignored(text_block: TextBlock):
+    if isinstance(text_block, Error):
+        return False
+
     font_family = get_font_family(text_block.style)
     font_size = get_font_size(text_block.style)
     if isinstance(font_family, Error) or isinstance(font_size, Error):
@@ -255,6 +260,9 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
 
 
 def is_block_an_annotation(text_block: TextBlock):
+    if isinstance(text_block, Error):
+        return False
+
     font_family = get_font_family(text_block.style)
     font_size = get_font_size(text_block.style)
     if (font_family, font_size) in \
@@ -267,6 +275,9 @@ def is_block_an_annotation(text_block: TextBlock):
 
 
 def is_block_is_bold(text_block: TextBlock):
+    if isinstance(text_block, Error):
+        return False
+
     font_family = get_font_family(text_block.style)
     font_size = get_font_size(text_block.style)
     if (font_family, font_size) in \
@@ -399,20 +410,25 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     if is_block_should_be_completely_ignored(current_block):
         return acc
 
+    text_to_be_added = ''
+
     # This is specific for Tomb of Anihilation
     if current_block.text.strip() == 'Ч' \
             and get_font_size(current_block.style) == 105:
         acc.current_page = 5
+        text_to_be_added = '<p>'
         acc.book_started = True
 
     if acc.book_started is False:  # do nothing until book starts
+        acc.previous_block = current_block
         return acc
 
-    print('-----------------------------------------------------------------')
-    print(current_block)
-    print(f'At page: {acc.current_page}')
+    if acc.debug:
+        print('--------------------------------------'
+              '--------------------------------------------')
+        print(current_block)
+        print(f'At page: {acc.current_page}')
 
-    text_to_be_added = ''
     previous_text = acc.previous_block.text
 
     if is_normal_text_block_ended(acc.previous_block, current_block):
@@ -445,25 +461,29 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     acc.previous_font_family = get_font_family(current_block.style)
     acc.previous_font_size = get_font_size(current_block.style)
 
-    # if is_block_a_header(current_block):
-    #     acc.previous_block_type = 'Header'
-    # else:
-    #     acc.previous_block_type = 'Normal'
-
     acc.previous_block = current_block
     return acc
 
 
-if __name__ == '__main__':
-    module_name = "tomb_exported"
-    text_blocks = get_page_blocks(module_name)
+@maybe
+def get_stories(mod_name: str, limit_blocks: int = 0) -> List[str]:
+    text_blocks = get_page_blocks(mod_name)
+    if limit_blocks:
+        text_blocks = text_blocks[:limit_blocks]
+
     articles = functools.reduce(
             reduce_text_blocks,
             text_blocks,
             Accumulator([]),
     )
-    articles.current_article_text += '</p>'
-    print(articles)
+    if articles.current_article_text \
+            and not articles.current_article_text.endswith('</p>'):
+        articles.current_article_text += '</p>'
+    articles.articles.append(articles.current_article_text)
+    return articles.articles
 
-    with open('stories.obj', 'wb') as f:
-        f.write(pickle.dumps(articles.current_article_text))
+
+if __name__ == '__main__':
+    print(get_stories("tomb_exported", 600))
+    # with open('stories.obj', 'wb') as f:
+    #     f.write(pickle.dumps(get_stories("tomb_exported")))
