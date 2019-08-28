@@ -63,21 +63,19 @@ class Error:
         return f'Error: {self.text}'
 
 
-def get_font_family(style_string: str) -> Union[str, Error]:
+def get_font_family(style_string: str) -> str:
+    tokens = re.findall("font-family: b\\'(.+)\\'",
+                        style_string)
+    if not tokens or len(tokens) < 1:
+        return ''
+    return tokens[0]
+
+
+def get_font_size(style_string: str) -> int:
     tokens = re.findall("font-family: b'(.+)\+.+font-size:(\d+)px",
                         style_string)
     if not tokens or len(tokens) != 1 or len(tokens[0]) != 2:
-        return Error(f'Cannot parse string: {style_string}\n'
-                     f'Found {len(tokens)} tokens instead of 2: {tokens}')
-    return tokens[0][0]
-
-
-def get_font_size(style_string: str) -> Union[int, Error]:
-    tokens = re.findall("font-family: b'(.+)\+.+font-size:(\d+)px",
-                        style_string)
-    if not tokens or len(tokens) != 1 or len(tokens[0]) != 2:
-        return Error(f'Cannot parse string: {style_string}\n'
-                     f'Found {len(tokens)} tokens instead of 2: {tokens}')
+        return 0
 
     return int(tokens[0][1])
 
@@ -86,6 +84,7 @@ def get_font_size(style_string: str) -> Union[int, Error]:
 class TextBlock:
     text: str
     style: str
+    is_starting_block: bool = False
 
     def __repr__(self):
         font_family = get_font_family(self.style)
@@ -138,6 +137,7 @@ def maybe(func):
             parameter = kwargs[parameter_name]
             if isinstance(parameter, Error):
                 return parameter
+
         try:
             return func(*args, **kwargs)
         except Exception as e:
@@ -206,6 +206,8 @@ def is_block_a_header(text_block: TextBlock):
                     ("YGSRYS", 20),
                     ("YGSRYS", 15),
                     ("YGSRYS", 13),
+                    ("FTEHSE", 55),
+                    ("FTEHSE", 54),
             ):
         return True
     return False
@@ -222,6 +224,10 @@ def is_block_a_normal_text(text_block: TextBlock):
                     ("SXQHSE", 11),
                     ("EFQWEG", 105),
                     ("LKERYS", 11),
+                    ("EPUBEG", 24),
+                    ("EPUBEG", 17),
+                    ("TEDIGC", 11),
+                    ("TANMCH", 10),
 
             ):
         return True
@@ -233,13 +239,15 @@ def is_block_an_itallic(text_block: TextBlock):
         return False
 
     font_family = get_font_family(text_block.style)
-    font_size = get_font_size(text_block.style)
-    if (font_family, font_size) in \
-            (
-                    ("KGULKU", 11),
-
-            ):
+    if 'italic' in font_family:
         return True
+    # font_size = get_font_size(text_block.style)
+    # if (font_family, font_size) in \
+    #         (
+    #                 ("KGULKU", 11),
+    #                 ("MWRSMQ", 9),
+    #
+    #         ):
     return False
 
 
@@ -250,6 +258,8 @@ def get_text_from_block(
     if current_block.text.strip() == '-' and \
             not previous_block.text.endswith(' '):
         return ''
+    if current_block.text == '\n' and not previous_block.text.endswith(' '):
+        return ' '
     return current_block.text
 
 
@@ -274,21 +284,6 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
     return False
 
 
-def is_block_an_aloud(text_block: TextBlock):
-    if isinstance(text_block, Error):
-        return False
-
-    font_family = get_font_family(text_block.style)
-    font_size = get_font_size(text_block.style)
-    if (font_family, font_size) in \
-            (
-                    ("FBHCSE", 10),
-
-            ):
-        return True
-    return False
-
-
 def is_block_is_bold(text_block: TextBlock):
     if isinstance(text_block, Error):
         return False
@@ -298,6 +293,9 @@ def is_block_is_bold(text_block: TextBlock):
     if (font_family, font_size) in \
             (
                     ("WCDQSB", 12),
+                    # ("TANMCH", 10),
+                    ("VDMYED", 12),
+                    ("VDMYED", 10),
 
             ):
         return True
@@ -308,7 +306,15 @@ def is_new_normal_block_started(
         previous_block: TextBlock,
         current_block: TextBlock,
 ) -> bool:
-    if not is_block_a_normal_text(previous_block) and \
+    # if not is_block_a_normal_text(previous_block) and \
+    #         is_block_a_normal_text(current_block):
+
+    if previous_block.is_starting_block and \
+            not is_block_a_header(current_block):
+        return True
+
+    if (is_block_a_header(previous_block) or
+        is_aloud_block(previous_block)) and \
             is_block_a_normal_text(current_block):
         return True
     return False
@@ -352,12 +358,26 @@ def is_italic_block_ended(
     return False
 
 
-def is_new_aloud_block_started(
+def is_aloud_block(previous_block: TextBlock, current_block: TextBlock):
+    if (get_font_family(previous_block.style) in (
+            'SXQHSE+Mookmania',
+            '',
+            'EPUBEG+OpenSans-Bold-SC700',
+            'FBHCSE+OpenSans',
+    ) and get_font_family(current_block.style) in (
+            'EPUBEG+OpenSans-Bold-SC700',
+            'FBHCSE+OpenSans',
+    )):
+        return True
+    return False
+
+
+def is_aloud_block_started(
         previous_block: TextBlock,
         current_block: TextBlock,
 ) -> bool:
-    if not is_block_an_aloud(previous_block) and \
-            is_block_an_aloud(current_block):
+    if not is_aloud_block(previous_block) and \
+            is_aloud_block(current_block):
         return True
     return False
 
@@ -366,8 +386,8 @@ def is_aloud_block_ended(
         previous_block: TextBlock,
         current_block: TextBlock,
 ) -> bool:
-    if is_block_an_aloud(previous_block) and \
-            not is_block_an_aloud(current_block):
+    if is_aloud_block(previous_block) and \
+            not is_aloud_block(current_block):
         return True
     return False
 
@@ -386,7 +406,8 @@ def is_header_block_started(
         previous_block: TextBlock,
         current_block: TextBlock,
 ) -> bool:
-    if not is_block_a_header(previous_block) and \
+    if (not is_block_a_header(previous_block) or
+        previous_block.is_starting_block) and \
             is_block_a_header(current_block):
         return True
     return False
@@ -400,6 +421,17 @@ def is_header_block_ended(
             not is_block_a_header(current_block):
         return True
     return False
+
+
+def normalize_word(word: str) -> str:
+    stripped_word = word.strip()
+    if len(stripped_word) < 3:
+        return word
+
+    first_letter = word.lstrip()[0]
+    last_part = word.split(first_letter)[1].lower()
+    before_first_letter = word.split(first_letter)[0]
+    return f'{before_first_letter}{first_letter}{last_part}'
 
 
 def transform_text(
@@ -418,8 +450,12 @@ def transform_text(
     if delete_leading_and_ending_tags(previous_text).endswith('.\n') and \
             text_to_return.startswith('.'):
         text_to_return = text_to_return[1:]
-    # if not text_to_return.endswith(' '):
-    #     text_to_return += ' '
+
+    # words = delete_leading_and_ending_tags(text_to_return).split(' ')
+    # normalized_words = ' '.join(map(normalize_word, words))
+    # text_to_return = text_to_return.replace(
+    #         delete_leading_and_ending_tags(text_to_return),
+    #         normalized_words)
 
     return text_to_return
 
@@ -430,11 +466,15 @@ def delete_leading_and_ending_tags(string):
 
 def restich_string(input_string: str) -> str:
     return re.sub(r'(\.)([А-Я])+', r'\g<1><p></p>\g<2>', input_string)
-    # return re.sub(r'(\.)([А-Я])+', r'\g<1></p><p>\g<2>', input_string)
 
 
 def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     acc.current_text_block_number += 1
+
+    print(get_font_family(current_block.style))
+    print(current_block.text)
+    print('\n\n')
+    return acc
 
     new_page = is_page_block_a_page_number(
             current_block,
@@ -460,28 +500,21 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     #     acc.previous_block = current_block
     #     return acc
 
-    if acc.debug:
-        print('--------------------------------------'
-              '--------------------------------------------')
-        print(current_block)
-        print(f'At page: {acc.current_page}')
-
     previous_text = acc.previous_block.text
 
-    # if is_aloud_block_ended(acc.previous_block, current_block):
-    #     text_to_be_added += '</frame>'
-    #
-    # if is_header_block_ended(acc.previous_block, current_block):
-    #     text_to_be_added += '</h>'
-    #
-    # if is_italic_block_ended(acc.previous_block, current_block):
-    #     text_to_be_added += '</i>'
-    #
-    # if is_bold_block_ended(acc.previous_block, current_block):
-    #     text_to_be_added += '</b>'
-    #
-    # if is_normal_text_block_ended(acc.previous_block, current_block):
-    #     text_to_be_added += '</p>'
+    if is_italic_block_ended(acc.previous_block, current_block):
+        text_to_be_added += '</i>'
+        acc.currently_open_tags = list(filter(
+                lambda x: x != 'i', acc.currently_open_tags))
+
+    if is_bold_block_ended(acc.previous_block, current_block):
+        text_to_be_added += '</b>'
+        acc.currently_open_tags = list(filter(
+                lambda x: x != 'b', acc.currently_open_tags))
+
+    if is_header_block_ended(acc.previous_block, current_block):
+        text_to_be_added += '<p>'
+        acc.currently_open_tags.append('p')
 
     if is_header_block_started(acc.previous_block, current_block):
         if acc.currently_open_tags:
@@ -495,7 +528,7 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
         text_to_be_added += '<p>'
         acc.currently_open_tags = ['p', ]
 
-    if is_new_aloud_block_started(acc.previous_block, current_block):
+    if is_aloud_block_started(acc.previous_block, current_block):
         if acc.currently_open_tags:
             text_to_be_added += close_opened_tags(acc.currently_open_tags)
         text_to_be_added += '<frame>'
@@ -515,6 +548,14 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     acc.previous_font_family = get_font_family(current_block.style)
     acc.previous_font_size = get_font_size(current_block.style)
 
+    if acc.debug:
+        print('--------------------------------------'
+              '--------------------------------------------')
+        print(current_block)
+        print(f'Block number: {acc.current_text_block_number}')
+        print(f'Currently opened tags: {acc.currently_open_tags}')
+        # print(f'At page: {acc.current_page}')
+
     acc.previous_block = current_block
     return acc
 
@@ -532,7 +573,10 @@ def get_stories(
     articles = functools.reduce(
             reduce_text_blocks,
             text_blocks,
-            Accumulator([], debug=debug),
+            Accumulator(
+                    [],
+                    debug=debug,
+                    previous_block=TextBlock('', '', is_starting_block=True)),
     )
     # if articles.current_article_text and \
     #         not articles.current_article_text.startswith('<p>'):
@@ -549,6 +593,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    get_stories("tomb_exported", (620, 650), debug=True)
+    get_stories("tomb_exported", (53, 1500), debug=True)
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
