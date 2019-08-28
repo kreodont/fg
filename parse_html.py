@@ -254,6 +254,7 @@ def should_start_new_paragraph(
     current_font_size = get_font_size(current_block.style)
     if (current_font_family, current_font_size) in (
             ("VDMYED+OpenSans-Bold", 10),
+            ("EFQWEG+VictorianGothicThree", 105),
             # ("WCDQSB+Mookmania-Bold", 12),
     ) and is_previous_block_font_differs_from_current(
             previous_block,
@@ -263,6 +264,10 @@ def should_start_new_paragraph(
 
     if re.findall(r'\.\.\d+', previous_block.text):
         return True
+
+    # if '•' in current_block.text:
+    #     return True
+
     return False
 
 
@@ -438,6 +443,8 @@ def is_header_block(text_block: TextBlock):
                     ("YGSRYS+Mr.NigaSmallCaps", 28),
                     ("FTEHSE+NodestoCyrillic", 54),
                     ("YGSRYS+Mr.NigaSmallCaps", 15),
+                    ("YGSRYS+Mr.NigaSmallCaps", 20),
+                    ("YGSRYS+Mr.NigaSmallCaps", 13),
             ):
         return True
     return False
@@ -487,6 +494,7 @@ def transform_text(
 
     # text_to_return = text_to_return.replace('-\r\n', '')
     text_to_return = text_to_return.replace('\n', '')
+    text_to_return = text_to_return.replace('•', '</p><p>•')
     text_to_return = restich_string(text_to_return)
     if delete_leading_and_ending_tags(previous_text).endswith('.\n') and \
             text_to_return.startswith('.'):
@@ -591,11 +599,10 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     )
 
     if acc.debug:
-        print('--------------------------------------'
-              '--------------------------------------------')
         print(current_block)
         print(f'Block number: {acc.current_text_block_number}')
         print(f'Currently opened tags: {acc.currently_open_tags}')
+        print('\n\n')
         # print(f'At page: {acc.current_page}')
 
     acc.preprevious_block = acc.previous_block
@@ -638,6 +645,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    get_stories("tomb_exported", (175, 180), debug=True)
+    get_stories("tomb_exported", (0, 1500), debug=True)
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
