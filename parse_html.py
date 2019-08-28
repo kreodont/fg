@@ -200,13 +200,12 @@ def is_block_a_normal_text(text_block: TextBlock):
     font_size = get_font_size(text_block.style)
     if (font_family, font_size) in \
             (
-                    ("SXQHSE", 11),
-                    ("EFQWEG", 105),
-                    ("LKERYS", 11),
-                    ("EPUBEG", 24),
-                    ("EPUBEG", 17),
-                    ("TEDIGC", 11),
-                    ("TANMCH", 10),
+                    ("EFQWEG+VictorianGothicThree", 105),
+                    ("LKERYS+Mookmania", 11),
+                    ("EPUBEG+OpenSans-Bold-SC700", 24),
+                    ("EPUBEG+OpenSans-Bold-SC700", 17),
+                    ("TEDIGC+OpenSans-Light", 11),
+                    ("TANMCH+OpenSans", 10),
                     ("SXQHSE+Mookmania", 11),
 
             ):
@@ -591,6 +590,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    get_stories("tomb_exported", (0, 60), debug=True)
+    get_stories("tomb_exported", (0, 600), debug=True)
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
