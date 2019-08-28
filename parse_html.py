@@ -192,27 +192,6 @@ def get_page_blocks(
     return page_blocks
 
 
-def is_block_a_normal_text(text_block: TextBlock):
-    if isinstance(text_block, Error):
-        return False
-
-    font_family = get_font_family(text_block.style)
-    font_size = get_font_size(text_block.style)
-    if (font_family, font_size) in \
-            (
-                    ("EFQWEG+VictorianGothicThree", 105),
-                    ("LKERYS+Mookmania", 11),
-                    ("EPUBEG+OpenSans-Bold-SC700", 24),
-                    ("EPUBEG+OpenSans-Bold-SC700", 17),
-                    ("TEDIGC+OpenSans-Light", 11),
-                    ("TANMCH+OpenSans", 10),
-                    ("SXQHSE+Mookmania", 11),
-
-            ):
-        return True
-    return False
-
-
 def get_text_from_block(
         previous_block: TextBlock,
         current_block: TextBlock,
@@ -246,9 +225,59 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
     return False
 
 
+def is_block_a_normal_text(text_block: TextBlock):
+    if isinstance(text_block, Error):
+        return False
+
+    font_family = get_font_family(text_block.style)
+    font_size = get_font_size(text_block.style)
+    if (font_family, font_size) in \
+            (
+                    ("EFQWEG+VictorianGothicThree", 105),
+                    ("LKERYS+Mookmania", 11),
+                    ("EPUBEG+OpenSans-Bold-SC700", 24),
+                    ("EPUBEG+OpenSans-Bold-SC700", 17),
+                    ("TEDIGC+OpenSans-Light", 11),
+                    ("TANMCH+OpenSans", 10),
+                    ("SXQHSE+Mookmania", 11),
+                    ("VDMYED+OpenSans-Bold", 12),
+                    ("KGULKU+Mookmania-Italic", 11),
+
+            ):
+        return True
+    return False
+
+
+def should_start_new_paragraph(
+        previous_block: TextBlock, current_block: TextBlock):
+    current_font_family = get_font_family(current_block.style)
+    current_font_size = get_font_size(current_block.style)
+    if (current_font_family, current_font_size) in (
+            ("VDMYED+OpenSans-Bold", 10),
+    ) and is_previous_block_font_differs_from_current(
+            previous_block,
+            current_block,
+    ):
+        return True
+    return False
+
+
+def is_previous_block_font_differs_from_current(
+        previous_block: TextBlock,
+        current_block: TextBlock,
+):
+    if get_font_family(previous_block.style) == \
+            get_font_family(current_block.style) and \
+            get_font_size(previous_block.style) == \
+            get_font_size(current_block.style):
+        return False
+    return True
+
+
 def is_normal_block_started(
         previous_block: TextBlock,
         current_block: TextBlock,
+        preprevious_block: TextBlock,
 ) -> bool:
     # if not is_block_a_normal_text(previous_block) and \
     #         is_block_a_normal_text(current_block):
@@ -257,9 +286,16 @@ def is_normal_block_started(
             not is_header_block(current_block):
         return True
 
-    if is_header_block(previous_block) \
-            and is_block_a_normal_text(current_block):
+    if (is_header_block(previous_block) or
+        is_aloud_block(preprevious_block, previous_block)) and \
+            is_block_a_normal_text(current_block):
         return True
+
+    # if is_block_a_normal_text(current_block) and \
+    #         is_previous_block_font_differs_from_current(
+    #                 previous_block, current_block):
+    #     return True
+
     return False
 
 
@@ -396,6 +432,7 @@ def is_header_block(text_block: TextBlock):
             (
                     ("FTEHSE+NodestoCyrillic", 55),
                     ("YGSRYS+Mr.NigaSmallCaps", 28),
+                    ("FTEHSE+NodestoCyrillic", 54),
             ):
         return True
     return False
@@ -509,15 +546,21 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
         text_to_be_added += '<h>'
         acc.currently_open_tags = ['h', ]
 
-    if is_normal_block_started(acc.previous_block, current_block):
+    if is_normal_block_started(
+            acc.previous_block, current_block, acc.preprevious_block):
         text_to_be_added += close_opened_tags(acc.currently_open_tags)
         text_to_be_added += '<p>'
         acc.currently_open_tags = ['p', ]
 
-    if is_header_block_ended(acc.previous_block, current_block):
+    if should_start_new_paragraph(acc.previous_block, current_block):
         text_to_be_added += close_opened_tags(acc.currently_open_tags)
         text_to_be_added += '<p>'
-        acc.currently_open_tags = ['p']
+        acc.currently_open_tags = ['p', ]
+
+    # if is_header_block_ended(acc.previous_block, current_block):
+    #     text_to_be_added += close_opened_tags(acc.currently_open_tags)
+    #     text_to_be_added += '<p>'
+    #     acc.currently_open_tags = ['p']
 
     if is_aloud_block_started(
             acc.previous_block,
@@ -590,6 +633,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    get_stories("tomb_exported", (0, 600), debug=True)
+    get_stories("tomb_exported", (0, 150), debug=True)
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
