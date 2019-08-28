@@ -199,7 +199,7 @@ if __name__ == '__main__':
             module_name=module_name_,
             dist_folder=dist_folder_name_,
             # stories_list=['xexexe'],
-            stories_list=get_stories(module_name_, (0, 150)),
+            stories_list=get_stories(module_name_, (0, 1500)),
     )
     module_file_name = zipdir(module_name_, dist_folder_name_)
     print(f'Packed {dist_folder_name_} to {module_file_name}')

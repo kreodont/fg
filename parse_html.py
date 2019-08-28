@@ -242,7 +242,7 @@ def is_block_a_normal_text(text_block: TextBlock):
                     ("SXQHSE+Mookmania", 11),
                     ("VDMYED+OpenSans-Bold", 12),
                     ("KGULKU+Mookmania-Italic", 11),
-
+                    ("WCDQSB+Mookmania-Bold", 12),
             ):
         return True
     return False
@@ -254,10 +254,14 @@ def should_start_new_paragraph(
     current_font_size = get_font_size(current_block.style)
     if (current_font_family, current_font_size) in (
             ("VDMYED+OpenSans-Bold", 10),
+            # ("WCDQSB+Mookmania-Bold", 12),
     ) and is_previous_block_font_differs_from_current(
             previous_block,
             current_block,
     ):
+        return True
+
+    if re.findall(r'\.\.\d+', previous_block.text):
         return True
     return False
 
@@ -433,6 +437,7 @@ def is_header_block(text_block: TextBlock):
                     ("FTEHSE+NodestoCyrillic", 55),
                     ("YGSRYS+Mr.NigaSmallCaps", 28),
                     ("FTEHSE+NodestoCyrillic", 54),
+                    ("YGSRYS+Mr.NigaSmallCaps", 15),
             ):
         return True
     return False
@@ -633,6 +638,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    get_stories("tomb_exported", (0, 150), debug=True)
+    get_stories("tomb_exported", (175, 180), debug=True)
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
