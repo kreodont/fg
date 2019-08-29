@@ -216,9 +216,10 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
     font_size = get_font_size(text_block.style)
     if isinstance(font_family, Error) or isinstance(font_size, Error):
         return True
-    if font_family in ('GARIGC', 'TANMCH') and text_block.text.strip() == '-':
+    if font_family in ("GARIGC+Mookmania-Italic", "TANMCH+OpenSans") and \
+            text_block.text.strip() == '-':
         return True
-    if font_family == 'TWFNGC' and font_size == 10:  # new page
+    if font_family == "TWFNGC+Mr.NigaSmallCaps" and font_size == 10:  # new page
         return True
     # if font_family == 'YGSRYS' and font_size == 28:  # out of text header
     #     return True
@@ -249,7 +250,13 @@ def is_block_a_normal_text(text_block: TextBlock):
 
 
 def should_start_new_paragraph(
-        previous_block: TextBlock, current_block: TextBlock):
+        previous_block: TextBlock,
+        current_block: TextBlock,
+        currently_opened_tags: List[str],
+):
+    if 'frame' in currently_opened_tags:
+        return False
+
     current_font_family = get_font_family(current_block.style)
     current_font_size = get_font_size(current_block.style)
     if (current_font_family, current_font_size) in (
@@ -287,6 +294,7 @@ def is_normal_block_started(
         previous_block: TextBlock,
         current_block: TextBlock,
         preprevious_block: TextBlock,
+        # currently_opened_tags: List[str]
 ) -> bool:
     # if not is_block_a_normal_text(previous_block) and \
     #         is_block_a_normal_text(current_block):
@@ -294,6 +302,9 @@ def is_normal_block_started(
     if previous_block.is_starting_block and \
             not is_header_block(current_block):
         return True
+
+    # if 'frame' in currently_opened_tags:
+    #     return False
 
     if (is_header_block(previous_block) or
         is_aloud_block(preprevious_block, previous_block)) and \
@@ -485,6 +496,7 @@ def normalize_word(word: str) -> str:
 def transform_text(
         current_text: str,
         previous_text: str,
+        # currently_opened_tags: List[str]
 ) -> str:
     text_to_return = current_text
 
@@ -492,9 +504,9 @@ def transform_text(
     if delete_leading_and_ending_tags(previous_text).endswith('.\n'):
         text_to_return = '.' + text_to_return
 
-    # text_to_return = text_to_return.replace('-\r\n', '')
     text_to_return = text_to_return.replace('\n', '')
-    text_to_return = text_to_return.replace('•', '</p><p>•')
+    # if 'frame' not in currently_opened_tags:
+    text_to_return = text_to_return.replace('•', '*•')
     text_to_return = restich_string(text_to_return)
     if delete_leading_and_ending_tags(previous_text).endswith('.\n') and \
             text_to_return.startswith('.'):
@@ -514,7 +526,7 @@ def delete_leading_and_ending_tags(string):
 
 
 def restich_string(input_string: str) -> str:
-    return re.sub(r'(\.)([А-Я])+', r'\g<1><p></p>\g<2>', input_string)
+    return re.sub(r'(\.)([А-Я])+', r'\g<1>*\g<2>', input_string)
 
 
 def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
@@ -560,20 +572,23 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
         acc.currently_open_tags = ['h', ]
 
     if is_normal_block_started(
-            acc.previous_block, current_block, acc.preprevious_block):
+            acc.previous_block,
+            current_block,
+            acc.preprevious_block,
+            # acc.currently_open_tags,
+    ):
         text_to_be_added += close_opened_tags(acc.currently_open_tags)
         text_to_be_added += '<p>'
         acc.currently_open_tags = ['p', ]
 
-    if should_start_new_paragraph(acc.previous_block, current_block):
+    if should_start_new_paragraph(
+            acc.previous_block,
+            current_block,
+            acc.currently_open_tags
+    ):
         text_to_be_added += close_opened_tags(acc.currently_open_tags)
         text_to_be_added += '<p>'
         acc.currently_open_tags = ['p', ]
-
-    # if is_header_block_ended(acc.previous_block, current_block):
-    #     text_to_be_added += close_opened_tags(acc.currently_open_tags)
-    #     text_to_be_added += '<p>'
-    #     acc.currently_open_tags = ['p']
 
     if is_aloud_block_started(
             acc.previous_block,
@@ -596,6 +611,7 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     acc.current_article_text += transform_text(
             text_to_be_added,
             acc.previous_block.text,
+            # acc.currently_open_tags
     )
 
     if acc.debug:
@@ -645,6 +661,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    get_stories("tomb_exported", (0, 1500), debug=True)
+    get_stories("tomb_exported", (0, 1700), debug=True)
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))

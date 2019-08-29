@@ -9,6 +9,7 @@ from typing import List
 from FgXml import FgXml
 from fg_translations import translate_to_iso_codes
 from parse_html import get_stories
+# import xml.dom.minidom
 
 
 def define_fg_folder(os_type: str) -> str:
@@ -178,7 +179,8 @@ def create_common_xml(
                 value=translate_to_iso_codes(story),
         )
 
-        print(f'\n\n{story}\n\n')
+        print(story)
+        # print(f'{xml.dom.minidom.parseString(story).toprettyxml()}')
 
     with open('%s/common.xml' % dist_folder, 'w') as output_file:
         output_file.write(str(xml_template))
@@ -199,7 +201,7 @@ if __name__ == '__main__':
             module_name=module_name_,
             dist_folder=dist_folder_name_,
             # stories_list=['xexexe'],
-            stories_list=get_stories(module_name_, (0, 1500)),
+            stories_list=get_stories(module_name_, (0, 4000)),
     )
     module_file_name = zipdir(module_name_, dist_folder_name_)
     print(f'Packed {dist_folder_name_} to {module_file_name}')
