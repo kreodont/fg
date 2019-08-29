@@ -394,7 +394,11 @@ def is_italic_block(text_block: TextBlock):
 def is_italic_block_started(
         previous_block: TextBlock,
         current_block: TextBlock,
+        currently_opened_tags: List[str],
 ) -> bool:
+    # if 'b' in currently_opened_tags:
+    #     return False
+
     if not is_italic_block(previous_block) and \
             is_italic_block(current_block):
         return True
@@ -429,8 +433,12 @@ def is_aloud_block(previous_block: TextBlock, current_block: TextBlock):
 def is_aloud_block_started(
         previous_block: TextBlock,
         current_block: TextBlock,
-        preprevious_block: TextBlock
+        preprevious_block: TextBlock,
+        currently_opened_tags: List[str],
 ) -> bool:
+    if is_aloud_block(previous_block, current_block) and \
+            'frame' in currently_opened_tags:
+        return False
     if not is_aloud_block(preprevious_block, previous_block) and \
             is_aloud_block(previous_block, current_block):
         return True
@@ -592,7 +600,9 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
     if is_aloud_block_started(
             acc.previous_block,
             current_block,
-            acc.preprevious_block):
+            acc.preprevious_block,
+            acc.currently_open_tags,
+    ):
         # if acc.currently_open_tags:
         #     text_to_be_added += close_opened_tags(acc.currently_open_tags)
         text_to_be_added += '<frame>'
@@ -602,7 +612,8 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
         text_to_be_added += '<b>'
         acc.currently_open_tags.append('b')
 
-    if is_italic_block_started(acc.previous_block, current_block):
+    if is_italic_block_started(
+            acc.previous_block, current_block, acc.currently_open_tags):
         text_to_be_added += '<i>'
         acc.currently_open_tags.append('i')
 
@@ -660,6 +671,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    get_stories("tomb_exported", (21280, 21287), debug=True)
+    get_stories("tomb_exported", (31415, 31560), debug=True)
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
