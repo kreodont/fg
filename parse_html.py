@@ -208,26 +208,26 @@ def get_text_from_block(
 #     return ''.join([f'</{t}>' for t in tags_list[::-1]])
 #
 #
-# def is_block_should_be_completely_ignored(text_block: TextBlock):
-#     if isinstance(text_block, Error):
-#         return False
-#
-#     font_family = get_font_family(text_block.style)
-#     font_size = get_font_size(text_block.style)
-#     if isinstance(font_family, Error) or isinstance(font_size, Error):
-#         return True
-#     if font_family in (
-#             "GARIGC+Mookmania-Italic",
-#             "TANMCH+OpenSans",
-#             "UISOUA+OpenSans-Bold",
-#     ) and \
-#             text_block.text.strip() == '-':
-#         return True
-#     if font_family == "TWFNGC+Mr.NigaSmallCaps" and font_size == 10# new page
-#         return True
-#     # if font_family == 'YGSRYS' and font_size == 28:  # out of text header
-#     #     return True
-#     return False
+
+
+def is_block_should_be_completely_ignored(text_block: TextBlock):
+    if isinstance(text_block, Error):
+        return False
+
+    font_family = get_font_family(text_block.style)
+    font_size = get_font_size(text_block.style)
+    if isinstance(font_family, Error) or isinstance(font_size, Error):
+        return True
+    if font_family in (
+            "GARIGC+Mookmania-Italic",
+            "TANMCH+OpenSans",
+            "UISOUA+OpenSans-Bold",
+            "LKERYS+Mookmania",
+    ) and text_block.text.strip() == '-':
+        return True
+    if font_family == "TWFNGC+Mr.NigaSmallCaps" and font_size == 10:  # new page
+        return True
+    return False
 #
 #
 # def is_block_a_normal_text(text_block: TextBlock):
@@ -668,12 +668,12 @@ def get_block_tag(
 
     previous_font_family = get_font_family(previous_block.style)
 
-    frame_styles = ('SXQHSE+Mookmania', 'EPUBEG+OpenSans-Bold-SC700',
-                    'FBHCSE+OpenSans', )
-
-    if previous_font_family in frame_styles + ('', ) and \
-            current_font_family in frame_styles:
-        return 'frame'
+    # frame_styles = ('SXQHSE+Mookmania', 'EPUBEG+OpenSans-Bold-SC700',
+    #                 'FBHCSE+OpenSans', )
+    #
+    # if previous_font_family in frame_styles + ('', ) and \
+    #         current_font_family in frame_styles:
+    #     return 'frame'
 
     return 'p'  # normal text paragraph
 
@@ -708,6 +708,12 @@ def should_open_new_tag(
     previous_font_family = get_font_family(previous_block.style)
     previous_block_tag = get_block_tag(current_block=previous_block,
                                        previous_block=preprevious_block)
+
+    if current_block_tag == 'p' and previous_block_tag == 'p':
+        return False
+
+    # if current_block_tag == 'p' and 'p' in previously_opened_tags:
+    #     return False
 
     if current_block_tag == previous_block_tag and \
             current_font_family == previous_font_family:
@@ -764,6 +770,13 @@ def reduce_text_blocks2(acc: Accumulator, current_block: TextBlock):
     )
     text_to_add = ''
 
+    if acc.debug:
+        print(current_block)
+        print(f'Block number: {acc.current_text_block_number}')
+
+    if is_block_should_be_completely_ignored(current_block):
+        return acc
+
     if not blocks_font_the_same(current_block, acc.previous_block):
         if should_open_new_tag(
                 previously_opened_tags=acc.currently_open_tags,
@@ -796,8 +809,6 @@ def reduce_text_blocks2(acc: Accumulator, current_block: TextBlock):
     )
 
     if acc.debug:
-        print(current_block)
-        print(f'Block number: {acc.current_text_block_number}')
         print(f'Currently opened tags: {acc.currently_open_tags}')
         print('\n\n')
 
@@ -841,6 +852,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    print(get_stories("tomb_exported", (0, 300), debug=True)[0])
+    print(get_stories("tomb_exported", (0, 50), debug=True)[0])
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
