@@ -199,11 +199,11 @@ if __name__ == '__main__':
             module_name=module_name_,
             dist_folder=dist_folder_name_,
             # stories_list=['xexexe'],
-            stories_list=get_stories(module_name_, (31415, 31520)),
+            stories_list=get_stories(module_name_, (0, 300)),
     )
     module_file_name = zipdir(module_name_, dist_folder_name_)
     print(f'Packed {dist_folder_name_} to {module_file_name}')
-    destination_folder_ = define_fg_folder("mac")
+    destination_folder_ = define_fg_folder("win")
     print(f'Copying {module_file_name} '
           f'to {destination_folder_}/{module_file_name}')
     copy_mod_file_to_fg_folder(module_file_name, destination_folder_)

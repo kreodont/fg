@@ -656,6 +656,7 @@ def get_block_tag(
                     ("YGSRYS+Mr.NigaSmallCaps", 20),
                     ("YGSRYS+Mr.NigaSmallCaps", 13),
                     ("EPUBEG+OpenSans-Bold-SC700", 11),
+                    ("EPUBEG+OpenSans-Bold-SC700", 16),
             ):
         return 'h'
 
@@ -690,26 +691,43 @@ def blocks_font_the_same(block1: TextBlock, block2: TextBlock):
     return True
 
 
-def should_open_new_tag(current_tag: str, previously_opened_tags: List[str]):
+def should_open_new_tag(
+        *,
+        previously_opened_tags: List[str],
+        previous_block: TextBlock,
+        current_block: TextBlock,
+        preprevious_block: TextBlock,
+):
     # assuming that previous font and current font are different
     if len(previously_opened_tags) == 0:
         return True
 
-    if current_tag == 'h':
+    current_block_tag = get_block_tag(current_block=current_block,
+                                      previous_block=previous_block)
+    current_font_family = get_font_family(current_block.style)
+    previous_font_family = get_font_family(previous_block.style)
+    previous_block_tag = get_block_tag(current_block=previous_block,
+                                       previous_block=preprevious_block)
+
+    if current_block_tag == previous_block_tag and \
+            current_font_family == previous_font_family:
+        return False
+
+    if current_block_tag == 'h':
         return True
 
-    if current_tag == 'p':
+    if current_block_tag == 'p':
         return True
 
-    if current_tag == 'b':
+    if current_block_tag == 'b':
         if 'b' not in previously_opened_tags:
             return True
 
-    if current_tag == 'i':
+    if current_block_tag == 'i':
         if 'i' not in previously_opened_tags:
             return True
 
-    if current_tag == 'frame':
+    if current_block_tag == 'frame':
         if 'frame' not in previously_opened_tags:
             return True
 
@@ -727,10 +745,10 @@ def tags_should_be_closed(
         return ['h', 'p', 'i', 'b', 'frame']
 
     if currently_openning_tag == 'b':
-        return ['b']
+        return ['b', 'h']
 
     if currently_openning_tag == 'i':
-        return ['i']
+        return ['i', 'h']
 
     if currently_openning_tag == 'frame':
         return ['h', 'p', 'i', 'b', 'frame']
@@ -747,7 +765,12 @@ def reduce_text_blocks2(acc: Accumulator, current_block: TextBlock):
     text_to_add = ''
 
     if not blocks_font_the_same(current_block, acc.previous_block):
-        if should_open_new_tag(current_tag, acc.currently_open_tags):
+        if should_open_new_tag(
+                previously_opened_tags=acc.currently_open_tags,
+                previous_block=acc.previous_block,
+                preprevious_block=acc.preprevious_block,
+                current_block=current_block,
+        ):
             tags_to_be_closed = tags_should_be_closed(
                     current_tag,
                     # acc.currently_open_tags,
@@ -757,6 +780,10 @@ def reduce_text_blocks2(acc: Accumulator, current_block: TextBlock):
                 if tag in tags_to_be_closed:
                     acc.currently_open_tags.remove(tag)
                     text_to_add += f'</{tag}>'
+
+            if current_tag in ('b', 'i') and 'p' not in acc.currently_open_tags:
+                acc.currently_open_tags.append('p')
+                text_to_add += '<p>'
 
             acc.currently_open_tags.append(current_tag)
             text_to_add += f'<{current_tag}>'
@@ -814,6 +841,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    print(get_stories("tomb_exported", (31415, 31520), debug=True)[0])
+    print(get_stories("tomb_exported", (0, 300), debug=True)[0])
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
