@@ -216,7 +216,11 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
     font_size = get_font_size(text_block.style)
     if isinstance(font_family, Error) or isinstance(font_size, Error):
         return True
-    if font_family in ("GARIGC+Mookmania-Italic", "TANMCH+OpenSans") and \
+    if font_family in (
+            "GARIGC+Mookmania-Italic",
+            "TANMCH+OpenSans",
+            "UISOUA+OpenSans-Bold",
+    ) and \
             text_block.text.strip() == '-':
         return True
     if font_family == "TWFNGC+Mr.NigaSmallCaps" and font_size == 10:  # new page
@@ -294,7 +298,7 @@ def is_normal_block_started(
         previous_block: TextBlock,
         current_block: TextBlock,
         preprevious_block: TextBlock,
-        # currently_opened_tags: List[str]
+        currently_opened_tags: List[str]
 ) -> bool:
     # if not is_block_a_normal_text(previous_block) and \
     #         is_block_a_normal_text(current_block):
@@ -302,6 +306,9 @@ def is_normal_block_started(
     if previous_block.is_starting_block and \
             not is_header_block(current_block):
         return True
+
+    if is_block_a_normal_text(current_block) and 'p' in currently_opened_tags:
+        return False
 
     # if 'frame' in currently_opened_tags:
     #     return False
@@ -512,6 +519,9 @@ def transform_text(
             text_to_return.startswith('.'):
         text_to_return = text_to_return[1:]
 
+    if text_to_return.strip().isdecimal():
+        text_to_return = f'*{text_to_return} '
+
     # words = delete_leading_and_ending_tags(text_to_return).split(' ')
     # normalized_words = ' '.join(map(normalize_word, words))
     # text_to_return = text_to_return.replace(
@@ -545,17 +555,6 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
 
     text_to_be_added = ''
 
-    # This is specific for Tomb of Anihilation
-    # if current_block.text.strip() == 'Ч' \
-    #         and get_font_size(current_block.style) == 105:
-    #     acc.current_page = 5
-    #     text_to_be_added = '<p>'
-    #     acc.book_started = True
-
-    # if acc.book_started is False:  # do nothing until book starts
-    #     acc.previous_block = current_block
-    #     return acc
-
     if is_italic_block_ended(acc.previous_block, current_block):
         text_to_be_added += '</i>'
         acc.currently_open_tags = list(filter(
@@ -575,7 +574,7 @@ def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
             acc.previous_block,
             current_block,
             acc.preprevious_block,
-            # acc.currently_open_tags,
+            acc.currently_open_tags,
     ):
         text_to_be_added += close_opened_tags(acc.currently_open_tags)
         text_to_be_added += '<p>'
@@ -661,6 +660,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    get_stories("tomb_exported", (0, 1700), debug=True)
+    get_stories("tomb_exported", (21280, 21287), debug=True)
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
