@@ -221,6 +221,11 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
         return True
     if font_family == "TWFNGC+Mr.NigaSmallCaps" and font_size == 10:  # new page
         return True
+    if (font_family, font_size) in (
+            ("YGSRYS+Mr.NigaSmallCaps", 28),
+            ("YGSRYS+Mr.NigaSmallCaps", 9),
+    ):
+        return True
     return False
 
 
@@ -428,12 +433,6 @@ def tags_should_be_opened(
             current_font_family == previous_font_family:
         return []
 
-    # if current_tag == 'b' and \
-    #         (current_font_family, current_font_size) == \
-    #         ("VDMYED+OpenSans-Bold", 10) and \
-    #         'b' not in previously_opened_tags:
-    #     return ['p', 'b']
-
     if (current_font_family, current_font_size) == \
             ("FBHCSE+OpenSans", 10) and \
             (previous_font_family, previous_font_size) not in  \
@@ -441,6 +440,7 @@ def tags_should_be_opened(
                     ("FBHCSE+OpenSans", 10),
                     ("VDMYED+OpenSans-Bold", 10),
                     ("OXHEKR+OpenSans-Italic", 10),
+                    ("TANMCH+OpenSans", 10),
             ):
         acc.start_next_paragraph_when_font_changes = True
         return ['frame', ]
@@ -480,6 +480,10 @@ def new_paragraph_should_be_started(current_block, previous_block, acc) -> bool:
         return True
 
     if previous_tag == 'h' and current_tag != 'h':
+        return True
+
+    if (current_font_family, current_font_size) == \
+            ("EFQWEG+VictorianGothicThree", 105):
         return True
 
     if (current_font_family, current_font_size) == \
@@ -626,6 +630,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    print(get_stories("tomb_exported", (0, 200), debug=True)[0])
+    print(get_stories("tomb_exported", (0, 1600), debug=True)[0])
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
