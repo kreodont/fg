@@ -67,7 +67,7 @@ def get_font_family(style_string: str) -> str:
     tokens = re.findall("font-family: b\\'(.+)\\'",
                         style_string)
     if not tokens or len(tokens) < 1:
-        return ''
+        return style_string
     return tokens[0]
 
 
@@ -153,11 +153,16 @@ def parse_into_beautiful_soup_html(
 
 
 def get_paragraph_spans(paragraph: bs4.element.Tag) -> List[TextBlock]:
-    if not paragraph.text.strip():
-        return []
+    # if not paragraph.text.strip():
+    #     return [TextBlock('', paragraph['style'])]
 
-    return [TextBlock(span.text, span['style'])
-            for span in paragraph.find_all('span')]
+    spans = [TextBlock(span.text, span['style']) for
+             span in paragraph.find_all('span')]
+    if not spans:
+        return [TextBlock(paragraph.text, paragraph['style']), ]
+    return spans
+    # return [TextBlock(span.text, span['style'])
+    #         for span in paragraph.find_all('span')]
 
 
 @maybe
@@ -202,6 +207,8 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
 
     font_family = get_font_family(text_block.style)
     font_size = get_font_size(text_block.style)
+    if font_size == 0:
+        return True
     if isinstance(font_family, Error) or isinstance(font_size, Error):
         return True
     if font_family in (
@@ -387,10 +394,10 @@ def tags_should_be_closed(
         return ['i']
 
     if currently_openning_tag in ('p', 'h'):
-        return ['b', 'i', 'frame']
+        return ['b', 'i']
 
-    if currently_openning_tag == 'frame':
-        return ['i', 'b', 'frame']
+    # if currently_openning_tag == 'frame':
+    #     return ['i', 'b', 'frame']
 
     return []
 
@@ -409,10 +416,13 @@ def tags_should_be_opened(
         previously_opened_tags: List[str],
         current_block: TextBlock,
         previous_block: TextBlock,
+        acc: Accumulator,
 ) -> List[str]:
     current_font_family = get_font_family(current_block.style)
-    # current_font_size = get_font_size(current_block.style)
+    current_font_size = get_font_size(current_block.style)
+
     previous_font_family = get_font_family(previous_block.style)
+    previous_font_size = get_font_size(previous_block.style)
     previous_block_tag = get_block_tag(current_block=previous_block)
     if current_tag == previous_block_tag and \
             current_font_family == previous_font_family:
@@ -423,6 +433,17 @@ def tags_should_be_opened(
     #         ("VDMYED+OpenSans-Bold", 10) and \
     #         'b' not in previously_opened_tags:
     #     return ['p', 'b']
+
+    if (current_font_family, current_font_size) == \
+            ("FBHCSE+OpenSans", 10) and \
+            (previous_font_family, previous_font_size) not in  \
+            (
+                    ("FBHCSE+OpenSans", 10),
+                    ("VDMYED+OpenSans-Bold", 10),
+                    ("OXHEKR+OpenSans-Italic", 10),
+            ):
+        acc.start_next_paragraph_when_font_changes = True
+        return ['frame', ]
 
     if current_tag in ('b', 'i'):
         if current_tag in previously_opened_tags:
@@ -523,6 +544,7 @@ def reduce_text_blocks2(acc: Accumulator, current_block: TextBlock):
                 previously_opened_tags=acc.currently_open_tags,
                 current_block=current_block,
                 previous_block=acc.previous_block,
+                acc=acc,
         )
         for tag_to_be_opened in tags_to_be_opened:
             acc.currently_open_tags.append(tag_to_be_opened)
@@ -575,7 +597,7 @@ def get_stories(
         blocks_from_to: tuple = (),
         debug: bool = False,
 ) -> List[str]:
-    text_blocks = get_page_blocks(mod_name)
+    text_blocks = get_page_blocks(mod_name, force_reread=False)
     if blocks_from_to:
         text_blocks = text_blocks[blocks_from_to[0]:blocks_from_to[1]]
 
@@ -604,6 +626,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    print(get_stories("tomb_exported", (0, 100), debug=True)[0])
+    print(get_stories("tomb_exported", (0, 200), debug=True)[0])
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
