@@ -98,21 +98,13 @@ class Accumulator:
     current_page: int = 0
     previous_block: TextBlock = TextBlock('', '')
     preprevious_block: TextBlock = TextBlock('', '')
+    start_next_paragraph_when_font_changes: bool = False
     # book_started: bool = False
     current_article_text: str = ''
     current_text_block_number: int = 0
     temporary_article: str = ''
     debug: bool = False
     currently_open_tags: list = field(default_factory=list)
-
-
-# def get_font_family(style_string: str) -> Union[str, Error]:
-#     tokens = re.findall("font-family: b'(.+)\+.+font-size:(\d+)px",
-#                         style_string)
-#     if not tokens or len(tokens) != 1 or len(tokens[0]) != 2:
-#         return Error(f'Cannot parse string: {style_string}\n'
-#                      f'Found {len(tokens)} tokens instead of 2: {tokens}')
-#     return tokens[0][0]
 
 
 def is_page_block_a_page_number(
@@ -203,12 +195,6 @@ def get_text_from_block(
         return ' '
     return current_block.text
 
-#
-# def close_opened_tags(tags_list: List[str]) -> str:
-#     return ''.join([f'</{t}>' for t in tags_list[::-1]])
-#
-#
-
 
 def is_block_should_be_completely_ignored(text_block: TextBlock):
     if isinstance(text_block, Error):
@@ -223,278 +209,12 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
             "TANMCH+OpenSans",
             "UISOUA+OpenSans-Bold",
             "LKERYS+Mookmania",
+            "IQTUIY+OpenSansLight-Italic",
     ) and text_block.text.strip() == '-':
         return True
     if font_family == "TWFNGC+Mr.NigaSmallCaps" and font_size == 10:  # new page
         return True
     return False
-#
-#
-# def is_block_a_normal_text(text_block: TextBlock):
-#     if isinstance(text_block, Error):
-#         return False
-#
-#     font_family = get_font_family(text_block.style)
-#     font_size = get_font_size(text_block.style)
-#     if (font_family, font_size) in \
-#             (
-#                     ("EFQWEG+VictorianGothicThree", 105),
-#                     ("LKERYS+Mookmania", 11),
-#                     ("EPUBEG+OpenSans-Bold-SC700", 24),
-#                     ("EPUBEG+OpenSans-Bold-SC700", 17),
-#                     ("TEDIGC+OpenSans-Light", 11),
-#                     ("TANMCH+OpenSans", 10),
-#                     ("SXQHSE+Mookmania", 11),
-#                     ("VDMYED+OpenSans-Bold", 12),
-#                     ("KGULKU+Mookmania-Italic", 11),
-#                     ("WCDQSB+Mookmania-Bold", 12),
-#             ):
-#         return True
-#     return False
-#
-#
-# def should_start_new_paragraph(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-#         currently_opened_tags: List[str],
-# ):
-#     if 'frame' in currently_opened_tags:
-#         return False
-#
-#     current_font_family = get_font_family(current_block.style)
-#     current_font_size = get_font_size(current_block.style)
-#     if (current_font_family, current_font_size) in (
-#             ("VDMYED+OpenSans-Bold", 10),
-#             ("EFQWEG+VictorianGothicThree", 105),
-#             # ("WCDQSB+Mookmania-Bold", 12),
-#     ) and is_previous_block_font_differs_from_current(
-#             previous_block,
-#             current_block,
-#     ):
-#         return True
-#
-#     if re.findall(r'\.\.\d+', previous_block.text):
-#         return True
-#
-#     # if '•' in current_block.text:
-#     #     return True
-#
-#     return False
-#
-#
-# def is_previous_block_font_differs_from_current(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-# ):
-#     if get_font_family(previous_block.style) == \
-#             get_font_family(current_block.style) and \
-#             get_font_size(previous_block.style) == \
-#             get_font_size(current_block.style):
-#         return False
-#     return True
-#
-#
-# def is_normal_block_started(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-#         preprevious_block: TextBlock,
-#         currently_opened_tags: List[str]
-# ) -> bool:
-#     # if not is_block_a_normal_text(previous_block) and \
-#     #         is_block_a_normal_text(current_block):
-#
-#     if previous_block.is_starting_block and \
-#             not is_header_block(current_block):
-#         return True
-#
-#     if is_block_a_normal_text(current_block) and 'p' in currently_opened_tags:
-#         return False
-#
-#     # if 'frame' in currently_opened_tags:
-#     #     return False
-#
-#     if (is_header_block(previous_block) or
-#         is_aloud_block(preprevious_block, previous_block)) and \
-#             is_block_a_normal_text(current_block):
-#         return True
-#
-#     # if is_block_a_normal_text(current_block) and \
-#     #         is_previous_block_font_differs_from_current(
-#     #                 previous_block, current_block):
-#     #     return True
-#
-#     return False
-#
-#
-# def is_normal_block_ended(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-# ) -> bool:
-#     if not is_header_block(previous_block) and \
-#             is_header_block(current_block):
-#         return True
-#     return False
-#
-#
-# def is_bold_block(text_block: TextBlock):
-#     if isinstance(text_block, Error):
-#         return False
-#
-#     font_family = get_font_family(text_block.style)
-#     if 'bold' in font_family.lower():
-#         return True
-#     # font_size = get_font_size(text_block.style)
-#     # if (font_family, font_size) in \
-#     #         (
-#     #                 ("WCDQSB", 12),
-#     #                 # ("TANMCH", 10),
-#     #                 ("VDMYED", 12),
-#     #                 ("VDMYED", 10),
-#     #
-#     #         ):
-#     #     return True
-#     return False
-#
-#
-# def is_bold_block_started(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-# ) -> bool:
-#     if not is_bold_block(previous_block) and is_bold_block(current_block):
-#         return True
-#     return False
-#
-#
-# def is_bold_block_ended(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-# ) -> bool:
-#     if is_bold_block(previous_block) and not is_bold_block(current_block):
-#         return True
-#     return False
-#
-#
-# def is_italic_block(text_block: TextBlock):
-#     if isinstance(text_block, Error):
-#         return False
-#
-#     font_family = get_font_family(text_block.style)
-#     if 'italic' in font_family.lower():
-#         return True
-#     # font_size = get_font_size(text_block.style)
-#     # if (font_family, font_size) in \
-#     #         (
-#     #                 ("KGULKU", 11),
-#     #                 ("MWRSMQ", 9),
-#     #
-#     #         ):
-#     return False
-#
-#
-# def is_italic_block_started(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-#         # currently_opened_tags: List[str],
-# ) -> bool:
-#     # if 'b' in currently_opened_tags:
-#     #     return False
-#
-#     if not is_italic_block(previous_block) and \
-#             is_italic_block(current_block):
-#         return True
-#     return False
-#
-#
-# def is_italic_block_ended(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-# ) -> bool:
-#     if is_italic_block(previous_block) and \
-#             not is_italic_block(current_block):
-#         return True
-#     return False
-#
-#
-# def is_aloud_block(previous_block: TextBlock, current_block: TextBlock):
-#     current_font = get_font_family(current_block.style)
-#     if current_font not in ('FBHCSE+OpenSans',):
-#         return False
-#
-#     previous_font = get_font_family(previous_block.style)
-#     if previous_font not in ('SXQHSE+Mookmania',
-#                              '',
-#                              'EPUBEG+OpenSans-Bold-SC700',
-#                              'FBHCSE+OpenSans',
-#                              ):
-#         return False
-#     return True
-#
-#
-# def is_aloud_block_started(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-#         preprevious_block: TextBlock,
-#         currently_opened_tags: List[str],
-# ) -> bool:
-#     if is_aloud_block(previous_block, current_block) and \
-#             'frame' in currently_opened_tags:
-#         return False
-#     if not is_aloud_block(preprevious_block, previous_block) and \
-#             is_aloud_block(previous_block, current_block):
-#         return True
-#     return False
-#
-#
-# def is_aloud_block_ended(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-#         preprevious_block: TextBlock
-# ) -> bool:
-#     if is_aloud_block(preprevious_block, previous_block) and \
-#             not is_aloud_block(previous_block, current_block):
-#         return True
-#     return False
-#
-#
-# def is_header_block(text_block: TextBlock):
-#     if isinstance(text_block, Error):
-#         return False
-#
-#     font_family = get_font_family(text_block.style)
-#     font_size = get_font_size(text_block.style)
-#
-#     if (font_family, font_size) in \
-#             (
-#                     ("FTEHSE+NodestoCyrillic", 55),
-#                     ("YGSRYS+Mr.NigaSmallCaps", 28),
-#                     ("FTEHSE+NodestoCyrillic", 54),
-#                     ("YGSRYS+Mr.NigaSmallCaps", 15),
-#                     ("YGSRYS+Mr.NigaSmallCaps", 20),
-#                     ("YGSRYS+Mr.NigaSmallCaps", 13),
-#             ):
-#         return True
-#     return False
-#
-#
-# def is_header_block_started(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-# ) -> bool:
-#     if (not is_header_block(previous_block) or
-#         previous_block.is_starting_block) and \
-#             is_header_block(current_block):
-#         return True
-#     return False
-#
-#
-# def is_header_block_ended(
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-# ) -> bool:
-#     if is_header_block(previous_block) and \
-#             not is_header_block(current_block):
-#         return True
-#     return False
 
 
 def close_opened_tags(tags_list: List[str]) -> str:
@@ -534,12 +254,6 @@ def transform_text(
     if text_to_return.strip().isdecimal():
         text_to_return = f'*{text_to_return} '
 
-    # words = delete_leading_and_ending_tags(text_to_return).split(' ')
-    # normalized_words = ' '.join(map(normalize_word, words))
-    # text_to_return = text_to_return.replace(
-    #         delete_leading_and_ending_tags(text_to_return),
-    #         normalized_words)
-
     return text_to_return
 
 
@@ -550,100 +264,11 @@ def delete_leading_and_ending_tags(string):
 def restich_string(input_string: str) -> str:
     return re.sub(r'(\.)([А-Я])+', r'\g<1>*\g<2>', input_string)
 
-#
-# def reduce_text_blocks(acc: Accumulator, current_block: TextBlock):
-#     acc.current_text_block_number += 1
-#
-#     new_page = is_page_block_a_page_number(
-#             current_block,
-#             "TWFNGC",
-#             10,
-#     )
-#     if new_page:
-#         acc.current_page = new_page
-#
-#     if is_block_should_be_completely_ignored(current_block):
-#         return acc
-#
-#     text_to_be_added = ''
-#
-#     if is_italic_block_ended(acc.previous_block, current_block):
-#         text_to_be_added += '</i>'
-#         acc.currently_open_tags = list(filter(
-#                 lambda x: x != 'i', acc.currently_open_tags))
-#
-#     if is_bold_block_ended(acc.previous_block, current_block):
-#         text_to_be_added += '</b>'
-#         acc.currently_open_tags = list(filter(
-#                 lambda x: x != 'b', acc.currently_open_tags))
-#
-#     if is_header_block_started(acc.previous_block, current_block):
-#         text_to_be_added += close_opened_tags(acc.currently_open_tags)
-#         text_to_be_added += '<h>'
-#         acc.currently_open_tags = ['h', ]
-#
-#     if is_normal_block_started(
-#             acc.previous_block,
-#             current_block,
-#             acc.preprevious_block,
-#             acc.currently_open_tags,
-#     ):
-#         text_to_be_added += close_opened_tags(acc.currently_open_tags)
-#         text_to_be_added += '<p>'
-#         acc.currently_open_tags = ['p', ]
-#
-#     if should_start_new_paragraph(
-#             acc.previous_block,
-#             current_block,
-#             acc.currently_open_tags
-#     ):
-#         text_to_be_added += close_opened_tags(acc.currently_open_tags)
-#         text_to_be_added += '<p>'
-#         acc.currently_open_tags = ['p', ]
-#
-#     if is_aloud_block_started(
-#             acc.previous_block,
-#             current_block,
-#             acc.preprevious_block,
-#             acc.currently_open_tags,
-#     ):
-#         # if acc.currently_open_tags:
-#         #     text_to_be_added += close_opened_tags(acc.currently_open_tags)
-#         text_to_be_added += '<frame>'
-#         acc.currently_open_tags.append('frame')
-#
-#     if is_bold_block_started(acc.previous_block, current_block):
-#         text_to_be_added += '<b>'
-#         acc.currently_open_tags.append('b')
-#
-#     if is_italic_block_started(
-#             acc.previous_block, current_block):
-#         text_to_be_added += '<i>'
-#         acc.currently_open_tags.append('i')
-#
-#     text_to_be_added += get_text_from_block(acc.previous_block, current_block)
-#     acc.current_article_text += transform_text(
-#             text_to_be_added,
-#             acc.previous_block.text,
-#             # acc.currently_open_tags
-#     )
-#
-#     if acc.debug:
-#         print(current_block)
-#         print(f'Block number: {acc.current_text_block_number}')
-#         print(f'Currently opened tags: {acc.currently_open_tags}')
-#         print('\n\n')
-#         # print(f'At page: {acc.current_page}')
-#
-#     acc.preprevious_block = acc.previous_block
-#     acc.previous_block = current_block
-#     return acc
-
 
 def get_block_tag(
         *,
         current_block: TextBlock,
-        previous_block: TextBlock,
+        # previous_block: TextBlock,
 ) -> str:
     current_font_family = get_font_family(current_block.style)
     current_font_size = get_font_size(current_block.style)
@@ -657,6 +282,7 @@ def get_block_tag(
                     ("YGSRYS+Mr.NigaSmallCaps", 13),
                     ("EPUBEG+OpenSans-Bold-SC700", 11),
                     ("EPUBEG+OpenSans-Bold-SC700", 16),
+                    # ("VDMYED+OpenSans-Bold", 12),
             ):
         return 'h'
 
@@ -666,7 +292,7 @@ def get_block_tag(
     if 'bold' in current_font_family.lower():
         return 'b'
 
-    previous_font_family = get_font_family(previous_block.style)
+    # previous_font_family = get_font_family(previous_block.style)
 
     # frame_styles = ('SXQHSE+Mookmania', 'EPUBEG+OpenSans-Bold-SC700',
     #                 'FBHCSE+OpenSans', )
@@ -691,82 +317,171 @@ def blocks_font_the_same(block1: TextBlock, block2: TextBlock):
     return True
 
 
-def should_open_new_tag(
-        *,
-        previously_opened_tags: List[str],
-        previous_block: TextBlock,
-        current_block: TextBlock,
-        preprevious_block: TextBlock,
-):
-    # assuming that previous font and current font are different
-    if len(previously_opened_tags) == 0:
-        return True
+# def should_open_new_tag(
+#         *,
+#         previously_opened_tags: List[str],
+#         previous_block: TextBlock,
+#         current_block: TextBlock,
+#         # preprevious_block: TextBlock,
+# ):
+#     # assuming that previous font and current font are different
+#     if len(previously_opened_tags) == 0:
+#         return True
+#
+#     current_block_tag = get_block_tag(current_block=current_block,
+#                                       # previous_block=previous_block,
+#                                       )
+#     current_font_family = get_font_family(current_block.style)
+#     previous_font_family = get_font_family(previous_block.style)
+#     previous_block_tag = get_block_tag(current_block=previous_block,
+#                                        # previous_block=preprevious_block,
+#                                        )
+#
+#     if current_block_tag == 'p' and previous_block_tag == 'p':
+#         return False
+#
+#     if current_block_tag == previous_block_tag and \
+#             current_font_family == previous_font_family:
+#         return False
+#
+#     if current_block_tag == 'h':
+#         return True
+#
+#     if current_block_tag == 'p':
+#         return True
+#
+#     if current_block_tag == 'b':
+#         if 'b' not in previously_opened_tags:
+#             return True
+#
+#     if current_block_tag == 'i':
+#         if 'i' not in previously_opened_tags:
+#             return True
+#
+#     if current_block_tag == 'frame':
+#         if 'frame' not in previously_opened_tags:
+#             return True
+#
+#     return False
 
-    current_block_tag = get_block_tag(current_block=current_block,
-                                      previous_block=previous_block)
+
+def tags_should_be_closed(
+        *,
+        currently_openning_tag: str,
+        current_block: TextBlock,
+        previous_block: TextBlock,
+        previously_opened_tags: List[str],
+) -> List[str]:
     current_font_family = get_font_family(current_block.style)
     previous_font_family = get_font_family(previous_block.style)
-    previous_block_tag = get_block_tag(current_block=previous_block,
-                                       previous_block=preprevious_block)
+    previous_block_tag = get_block_tag(current_block=previous_block)
 
-    if current_block_tag == 'p' and previous_block_tag == 'p':
-        return False
-
-    # if current_block_tag == 'p' and 'p' in previously_opened_tags:
-    #     return False
-
-    if current_block_tag == previous_block_tag and \
+    if currently_openning_tag == previous_block_tag and \
             current_font_family == previous_font_family:
-        return False
+        return []
 
-    if current_block_tag == 'h':
+    if currently_openning_tag == 'b':
+        return ['b']
+
+    if currently_openning_tag == 'i':
+        return ['i']
+
+    if currently_openning_tag in ('p', 'h'):
+        return ['b', 'i', 'frame']
+
+    if currently_openning_tag == 'frame':
+        return ['i', 'b', 'frame']
+
+    return []
+
+
+def open_p_paragraph(currently_opened_tags: List[str]) -> List[str]:
+    return [f'</{tag}>' for tag in currently_opened_tags[::-1]] + ['<p>', ]
+
+
+def open_header(currently_opened_tags: List[str]):
+    return [f'</{tag}>' for tag in currently_opened_tags[::-1]] + ['<h>', ]
+
+
+def tags_should_be_opened(
+        *,
+        current_tag: str,
+        previously_opened_tags: List[str],
+        current_block: TextBlock,
+        previous_block: TextBlock,
+) -> List[str]:
+    current_font_family = get_font_family(current_block.style)
+    # current_font_size = get_font_size(current_block.style)
+    previous_font_family = get_font_family(previous_block.style)
+    previous_block_tag = get_block_tag(current_block=previous_block)
+    if current_tag == previous_block_tag and \
+            current_font_family == previous_font_family:
+        return []
+
+    # if current_tag == 'b' and \
+    #         (current_font_family, current_font_size) == \
+    #         ("VDMYED+OpenSans-Bold", 10) and \
+    #         'b' not in previously_opened_tags:
+    #     return ['p', 'b']
+
+    if current_tag in ('b', 'i'):
+        if current_tag in previously_opened_tags:
+            return []
+        elif 'p' not in previously_opened_tags:
+            return ['p', current_tag]
+        else:
+            return [current_tag, ]
+
+    return []
+
+
+def new_header_should_be_started(current_block, previous_block) -> bool:
+    if previous_block.is_starting_block and \
+            get_block_tag(current_block=current_block) == 'h':
         return True
 
-    if current_block_tag == 'p':
+    if get_block_tag(current_block=current_block) == 'h' and \
+            get_block_tag(current_block=previous_block) != 'h':
         return True
-
-    if current_block_tag == 'b':
-        if 'b' not in previously_opened_tags:
-            return True
-
-    if current_block_tag == 'i':
-        if 'i' not in previously_opened_tags:
-            return True
-
-    if current_block_tag == 'frame':
-        if 'frame' not in previously_opened_tags:
-            return True
 
     return False
 
 
-def tags_should_be_closed(
-        currently_openning_tag: str,
-        # previously_opened_tags: List[str],
-) -> List[str]:
-    if currently_openning_tag == 'h':
-        return ['h', 'p', 'i', 'b', 'frame']
+def new_paragraph_should_be_started(current_block, previous_block, acc) -> bool:
+    current_tag = get_block_tag(current_block=current_block)
+    previous_tag = get_block_tag(current_block=previous_block)
+    previous_font_family = get_font_family(previous_block.style)
+    previous_font_size = get_font_size(previous_block.style)
+    current_font_family = get_font_family(current_block.style)
+    current_font_size = get_font_size(current_block.style)
 
-    if currently_openning_tag == 'p':
-        return ['h', 'p', 'i', 'b', 'frame']
+    if previous_block.is_starting_block and current_tag != 'h':
+        return True
 
-    if currently_openning_tag == 'b':
-        return ['b', 'h']
+    if previous_tag == 'h' and current_tag != 'h':
+        return True
 
-    if currently_openning_tag == 'i':
-        return ['i', 'h']
+    if (current_font_family, current_font_size) == \
+            ("VDMYED+OpenSans-Bold", 10) and \
+            (previous_font_family, previous_font_size) != \
+            ("VDMYED+OpenSans-Bold", 10):
+        return True
 
-    if currently_openning_tag == 'frame':
-        return ['h', 'p', 'i', 'b', 'frame']
+    if (current_font_family, current_font_size) == \
+            ("MWRSMQ+OpenSansLight-Italic", 9) and \
+            (previous_font_family, previous_font_size) != \
+            ("MWRSMQ+OpenSansLight-Italic", 9):
+        acc.start_next_paragraph_when_font_changes = True
+        return True
 
-    return []
+    return False
 
 
 def reduce_text_blocks2(acc: Accumulator, current_block: TextBlock):
     acc.current_text_block_number += 1
     current_tag = get_block_tag(
             current_block=current_block,
-            previous_block=acc.previous_block,
+            # previous_block=acc.previous_block,
     )
     text_to_add = ''
 
@@ -778,29 +493,66 @@ def reduce_text_blocks2(acc: Accumulator, current_block: TextBlock):
         return acc
 
     if not blocks_font_the_same(current_block, acc.previous_block):
-        if should_open_new_tag(
-                previously_opened_tags=acc.currently_open_tags,
-                previous_block=acc.previous_block,
-                preprevious_block=acc.preprevious_block,
+        if new_header_should_be_started(current_block, acc.previous_block):
+            text_to_add = ''.join(open_header(acc.currently_open_tags))
+            acc.currently_open_tags = ['h', ]
+        elif new_paragraph_should_be_started(
+                current_block,
+                acc.previous_block,
+                acc):
+            text_to_add = ''.join(open_p_paragraph(acc.currently_open_tags))
+            acc.currently_open_tags = ['p', ]
+        elif acc.start_next_paragraph_when_font_changes:
+            text_to_add = ''.join(open_p_paragraph(acc.currently_open_tags))
+            acc.currently_open_tags = ['p', ]
+            acc.start_next_paragraph_when_font_changes = False
+
+        tags_to_be_closed = tags_should_be_closed(
+                currently_openning_tag=current_tag,
                 current_block=current_block,
-        ):
-            tags_to_be_closed = tags_should_be_closed(
-                    current_tag,
-                    # acc.currently_open_tags,
-            )
+                previous_block=acc.previous_block,
+                previously_opened_tags=acc.currently_open_tags,
+        )
+        for currently_opened_tag in acc.currently_open_tags[::-1]:
+            if currently_opened_tag in tags_to_be_closed:
+                acc.currently_open_tags.remove(currently_opened_tag)
+                text_to_add += f'</{currently_opened_tag}>'
 
-            for tag in acc.currently_open_tags[::-1]:
-                if tag in tags_to_be_closed:
-                    acc.currently_open_tags.remove(tag)
-                    text_to_add += f'</{tag}>'
+        tags_to_be_opened = tags_should_be_opened(
+                current_tag=current_tag,
+                previously_opened_tags=acc.currently_open_tags,
+                current_block=current_block,
+                previous_block=acc.previous_block,
+        )
+        for tag_to_be_opened in tags_to_be_opened:
+            acc.currently_open_tags.append(tag_to_be_opened)
+            text_to_add += f'<{tag_to_be_opened}>'
 
-            if current_tag in ('b', 'i') and 'p' not in acc.currently_open_tags:
-                acc.currently_open_tags.append('p')
-                text_to_add += '<p>'
-
-            acc.currently_open_tags.append(current_tag)
-            text_to_add += f'<{current_tag}>'
-            # print(f'New tag should be opened: {current_tag}')
+        # tags_to_be_closed = tags_should_be_closed(
+        #         current_tag,
+        #         # acc.currently_open_tags,
+        # )
+        #
+        # for tag in acc.currently_open_tags[::-1]:
+        #     if tag in tags_to_be_closed:
+        #         acc.currently_open_tags.remove(tag)
+        #         text_to_add += f'</{tag}>'
+        #
+        # if should_open_new_tag(
+        #         previously_opened_tags=acc.currently_open_tags,
+        #         previous_block=acc.previous_block,
+        #         preprevious_block=acc.preprevious_block,
+        #         current_block=current_block,
+        # ):
+        #
+        #     if current_tag in ('b', 'i') and 'p' not in
+        #     acc.currently_open_tags:
+        #         acc.currently_open_tags.append('p')
+        #         text_to_add += '<p>'
+        #
+        #     acc.currently_open_tags.append(current_tag)
+        #     text_to_add += f'<{current_tag}>'
+        #     # print(f'New tag should be opened: {current_tag}')
 
     text_to_add += get_text_from_block(acc.previous_block, current_block)
     acc.current_article_text += transform_text(
@@ -852,6 +604,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    print(get_stories("tomb_exported", (0, 50), debug=True)[0])
+    print(get_stories("tomb_exported", (0, 100), debug=True)[0])
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
