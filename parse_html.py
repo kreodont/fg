@@ -279,6 +279,10 @@ def transform_text(
     if text_to_return.strip().isdecimal():
         text_to_return = f'*{text_to_return}'
 
+    if len(delete_leading_and_ending_tags(current_text)) > 0 \
+            and delete_leading_and_ending_tags(current_text)[0].isdecimal():
+        text_to_return = f'*{text_to_return}'
+
     # if len(text_to_return.strip()) > 0 and
     # text_to_return.strip()[0].isdecimal():
     #     text_to_return = f'*{text_to_return}'
@@ -351,7 +355,7 @@ def tags_should_be_closed(
         currently_openning_tag: str,
         current_block: TextBlock,
         previous_block: TextBlock,
-        # previously_opened_tags: List[str],
+        previously_opened_tags: List[str],
 ) -> List[str]:
     current_font_family = get_font_family(current_block.style)
     previous_font_family = get_font_family(previous_block.style)
@@ -365,6 +369,8 @@ def tags_should_be_closed(
         return ['b']
 
     if currently_openning_tag == 'i':
+        if previously_opened_tags and previously_opened_tags[-1] == 'b':
+            return ['b', 'i']
         return ['i']
 
     if currently_openning_tag in ('p', 'h'):
@@ -461,11 +467,11 @@ def new_paragraph_should_be_started(current_block, previous_block, acc) -> bool:
             ("VDMYED+OpenSans-Bold", 10):
         return True
 
-    if (current_font_family, current_font_size) == ("WCDQSB+Mookmania-Bold", 12):
+    if (current_font_family, current_font_size) == \
+            ("WCDQSB+Mookmania-Bold", 12):
         text = current_block.text.strip()
         if len(text) > 0 and text[0].isdecimal():
             return True
-
 
     if (current_font_family, current_font_size) == \
             ("MWRSMQ+OpenSansLight-Italic", 9) and \
@@ -511,7 +517,7 @@ def reduce_text_blocks2(acc: Accumulator, current_block: TextBlock):
                 currently_openning_tag=current_tag,
                 current_block=current_block,
                 previous_block=acc.previous_block,
-                # previously_opened_tags=acc.currently_open_tags,
+                previously_opened_tags=acc.currently_open_tags,
         )
         for currently_opened_tag in acc.currently_open_tags[::-1]:
             if currently_opened_tag in tags_to_be_closed:
