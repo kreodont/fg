@@ -203,7 +203,7 @@ if __name__ == '__main__':
     )
     module_file_name = zipdir(module_name_, dist_folder_name_)
     print(f'Packed {dist_folder_name_} to {module_file_name}')
-    destination_folder_ = define_fg_folder("mac")
+    destination_folder_ = define_fg_folder("win")
     print(f'Copying {module_file_name} '
           f'to {destination_folder_}/{module_file_name}')
     copy_mod_file_to_fg_folder(module_file_name, destination_folder_)

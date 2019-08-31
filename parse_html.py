@@ -201,14 +201,18 @@ def get_text_from_block(
     return current_block.text
 
 
-def is_block_should_be_completely_ignored(text_block: TextBlock):
+def is_block_should_be_completely_ignored(
+        text_block: TextBlock,
+        previous_block: TextBlock):
+
     if isinstance(text_block, Error):
         return False
 
     font_family = get_font_family(text_block.style)
     font_size = get_font_size(text_block.style)
-    if font_size == 0:
-        return True
+    previous_font_size = get_font_size(previous_block.style)
+    # if font_size == 0:
+    #     return True
     if isinstance(font_family, Error) or isinstance(font_size, Error):
         return True
     if font_family in (
@@ -222,10 +226,16 @@ def is_block_should_be_completely_ignored(text_block: TextBlock):
     if font_family == "TWFNGC+Mr.NigaSmallCaps" and font_size == 10:  # new page
         return True
     if (font_family, font_size) in (
-            ("YGSRYS+Mr.NigaSmallCaps", 28),
+            # ("YGSRYS+Mr.NigaSmallCaps", 28),
             ("YGSRYS+Mr.NigaSmallCaps", 9),
     ):
         return True
+
+    if (font_family, font_size) in (
+            ("YGSRYS+Mr.NigaSmallCaps", 28),
+    ) and previous_font_size == 0:
+        return True
+
     return False
 
 
@@ -249,6 +259,8 @@ def transform_text(
         previous_text: str,
         # currently_opened_tags: List[str]
 ) -> str:
+    if isinstance(current_text, Error):
+        return ''
     text_to_return = current_text
 
     # text_to_return = text_to_return.strip()
@@ -263,8 +275,13 @@ def transform_text(
             text_to_return.startswith('.'):
         text_to_return = text_to_return[1:]
 
+    # Put new line before every number which is single paragraph
     if text_to_return.strip().isdecimal():
-        text_to_return = f'*{text_to_return} '
+        text_to_return = f'*{text_to_return}'
+
+    # if len(text_to_return.strip()) > 0 and
+    # text_to_return.strip()[0].isdecimal():
+    #     text_to_return = f'*{text_to_return}'
 
     return text_to_return
 
@@ -329,60 +346,12 @@ def blocks_font_the_same(block1: TextBlock, block2: TextBlock):
     return True
 
 
-# def should_open_new_tag(
-#         *,
-#         previously_opened_tags: List[str],
-#         previous_block: TextBlock,
-#         current_block: TextBlock,
-#         # preprevious_block: TextBlock,
-# ):
-#     # assuming that previous font and current font are different
-#     if len(previously_opened_tags) == 0:
-#         return True
-#
-#     current_block_tag = get_block_tag(current_block=current_block,
-#                                       # previous_block=previous_block,
-#                                       )
-#     current_font_family = get_font_family(current_block.style)
-#     previous_font_family = get_font_family(previous_block.style)
-#     previous_block_tag = get_block_tag(current_block=previous_block,
-#                                        # previous_block=preprevious_block,
-#                                        )
-#
-#     if current_block_tag == 'p' and previous_block_tag == 'p':
-#         return False
-#
-#     if current_block_tag == previous_block_tag and \
-#             current_font_family == previous_font_family:
-#         return False
-#
-#     if current_block_tag == 'h':
-#         return True
-#
-#     if current_block_tag == 'p':
-#         return True
-#
-#     if current_block_tag == 'b':
-#         if 'b' not in previously_opened_tags:
-#             return True
-#
-#     if current_block_tag == 'i':
-#         if 'i' not in previously_opened_tags:
-#             return True
-#
-#     if current_block_tag == 'frame':
-#         if 'frame' not in previously_opened_tags:
-#             return True
-#
-#     return False
-
-
 def tags_should_be_closed(
         *,
         currently_openning_tag: str,
         current_block: TextBlock,
         previous_block: TextBlock,
-        previously_opened_tags: List[str],
+        # previously_opened_tags: List[str],
 ) -> List[str]:
     current_font_family = get_font_family(current_block.style)
     previous_font_family = get_font_family(previous_block.style)
@@ -492,6 +461,12 @@ def new_paragraph_should_be_started(current_block, previous_block, acc) -> bool:
             ("VDMYED+OpenSans-Bold", 10):
         return True
 
+    if (current_font_family, current_font_size) == ("WCDQSB+Mookmania-Bold", 12):
+        text = current_block.text.strip()
+        if len(text) > 0 and text[0].isdecimal():
+            return True
+
+
     if (current_font_family, current_font_size) == \
             ("MWRSMQ+OpenSansLight-Italic", 9) and \
             (previous_font_family, previous_font_size) != \
@@ -514,7 +489,7 @@ def reduce_text_blocks2(acc: Accumulator, current_block: TextBlock):
         print(current_block)
         print(f'Block number: {acc.current_text_block_number}')
 
-    if is_block_should_be_completely_ignored(current_block):
+    if is_block_should_be_completely_ignored(current_block, acc.previous_block):
         return acc
 
     if not blocks_font_the_same(current_block, acc.previous_block):
@@ -536,7 +511,7 @@ def reduce_text_blocks2(acc: Accumulator, current_block: TextBlock):
                 currently_openning_tag=current_tag,
                 current_block=current_block,
                 previous_block=acc.previous_block,
-                previously_opened_tags=acc.currently_open_tags,
+                # previously_opened_tags=acc.currently_open_tags,
         )
         for currently_opened_tag in acc.currently_open_tags[::-1]:
             if currently_opened_tag in tags_to_be_closed:
@@ -630,6 +605,6 @@ def get_stories(
 
 
 if __name__ == '__main__':
-    print(get_stories("tomb_exported", (0, 1600), debug=True)[0])
+    print(get_stories("tomb_exported", (1530, 1600), debug=True)[0])
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))
