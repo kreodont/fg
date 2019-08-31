@@ -47,7 +47,7 @@ formatting. Indicates a table cell, and the text to display within the cell.
 """
 
 from dataclasses import dataclass, field
-from typing import Union, List
+from typing import Union, List, Tuple
 import bs4
 import os
 import pickle
@@ -573,7 +573,18 @@ def reduce_text_blocks2(acc: Accumulator, current_block: TextBlock):
 
     acc.preprevious_block = acc.previous_block
     acc.previous_block = current_block
+
     return acc
+
+
+def split_articles(incoming_text) -> List[Tuple[str, str]]:
+    output_list = []
+    articles = ['<h>' + a for a in incoming_text.split('<h>') if a]
+    for article_number, a in enumerate(articles):
+        output_list.append(
+                (str(article_number).zfill(5) + ' ' +
+                 re.findall(r'<h>(.+)</h>', a)[0], a))
+    return output_list
 
 
 @maybe
@@ -581,7 +592,8 @@ def get_stories(
         mod_name: str,
         blocks_from_to: tuple = (),
         debug: bool = False,
-) -> List[str]:
+        several_blocks: bool = False,
+) -> List[Tuple[str, str]]:
     text_blocks = get_page_blocks(mod_name, force_reread=False)
     if blocks_from_to:
         text_blocks = text_blocks[blocks_from_to[0]:blocks_from_to[1]]
@@ -596,21 +608,21 @@ def get_stories(
                     preprevious_block=TextBlock('', '', is_starting_block=True),
             ),
     )
-    # if articles.current_article_text and \
-    #         not articles.current_article_text.startswith('<p>'):
-    #     articles.current_article_text = '<p>' + articles.current_article_text
-    #
-    # if articles.current_article_text \
-    #         and not articles.current_article_text.endswith('</p>'):
-    #     articles.current_article_text += '</p>'
-
     articles.current_article_text += close_opened_tags(
             articles.currently_open_tags)
     articles.articles.append(articles.current_article_text)
-    return articles.articles
+    if several_blocks:
+        return split_articles(articles.articles[0])
+
+    return [('Full Text', articles.articles[0])]
 
 
 if __name__ == '__main__':
-    print(get_stories("tomb_exported", (1530, 1600), debug=True)[0])
+    print(get_stories(
+            "tomb_exported",
+            (0, 200),
+            debug=True,
+            several_blocks=True,
+    )[0])
     # with open('stories.obj', 'wb') as f:
     #     f.write(pickle.dumps(get_stories("tomb_exported")))

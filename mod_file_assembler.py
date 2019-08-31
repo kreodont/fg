@@ -5,7 +5,7 @@ Output: Module file that can be imported to Fantasy Grounds
 import shutil
 import os
 import zipfile
-from typing import List
+from typing import List, Tuple
 from FgXml import FgXml
 from fg_translations import translate_to_iso_codes
 from parse_html import get_stories
@@ -81,7 +81,7 @@ def create_common_xml(
         *, 
         module_name: str, 
         dist_folder: str, 
-        stories_list: List[str],
+        stories_list: List[Tuple[str, str]],
 ) -> str:
 
     def build_xml_template(mod_name) -> FgXml:
@@ -153,29 +153,29 @@ def create_common_xml(
                     module_name,
                 ),
         )
-
+        story_name, story_formatted_text = story
         xml_template.append_under(
                 'npc -> index -> %s' % story_index,
                 'name',
                 {"type": "string"},
-                value=str(story_number).zfill(5) + ' ' + translate_to_iso_codes(
-                        module_name),
+                value=translate_to_iso_codes(story_name)
         )
 
         xml_template.append_under('npcdata -> category', '%s' % story_index)
         story_path = 'npcdata -> category -> %s' % story_index
+
         xml_template.append_under(
                 story_path,
                 'name',
                 {'type': "string"},
-                value=translate_to_iso_codes(module_name),
+                value=translate_to_iso_codes(story_name),
         )
 
         xml_template.append_under(
                 story_path,
                 'text',
                 {'type': "formattedtext"},
-                value=translate_to_iso_codes(story),
+                value=translate_to_iso_codes(story_formatted_text),
         )
 
         print(f'\n\n{story}\n\n')
@@ -199,7 +199,11 @@ if __name__ == '__main__':
             module_name=module_name_,
             dist_folder=dist_folder_name_,
             # stories_list=['xexexe'],
-            stories_list=get_stories(module_name_, ()),
+            stories_list=get_stories(
+                    module_name_,
+                    (),
+                    several_blocks=True,
+            ),
     )
     module_file_name = zipdir(module_name_, dist_folder_name_)
     print(f'Packed {dist_folder_name_} to {module_file_name}')
