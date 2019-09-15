@@ -595,6 +595,7 @@ def get_stories(
         several_blocks: bool = False,
 ) -> List[Tuple[str, str]]:
     text_blocks = get_page_blocks(mod_name, force_reread=False)
+    print(text_blocks)
     if blocks_from_to:
         text_blocks = text_blocks[blocks_from_to[0]:blocks_from_to[1]]
 
@@ -619,10 +620,9 @@ def get_stories(
 
 if __name__ == '__main__':
     print(get_stories(
-            "tomb_exported",
+            "dragon_rus",
             (0, 200),
             debug=True,
-            several_blocks=True,
-    )[0])
-    # with open('stories.obj', 'wb') as f:
-    #     f.write(pickle.dumps(get_stories("tomb_exported")))
+            several_blocks=False,
+    ))
+

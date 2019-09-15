@@ -187,7 +187,7 @@ def create_common_xml(
 
 
 if __name__ == '__main__':
-    module_name_ = 'tomb_rus'
+    module_name_ = 'dragon_rus'
     print(f'Module name: "{module_name_}"')
     dist_folder_name_ = f'{module_name_}_dist'
     print(f'Creating folder "{dist_folder_name_}"')
@@ -201,8 +201,8 @@ if __name__ == '__main__':
             # stories_list=['xexexe'],
             stories_list=get_stories(
                     module_name_,
-                    (),
-                    several_blocks=True,
+                    (0, 200),
+                    several_blocks=False,
             ),
     )
     module_file_name = zipdir(module_name_, dist_folder_name_)
