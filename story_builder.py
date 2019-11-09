@@ -13,7 +13,7 @@ only_assemble_files = False
 fantasy_grounds_folder = '/Users/dima/Dropbox/Fantasy Grounds/modules'  # mac
 
 
-def create_definition_xml(name, author='Kreodont'):
+def create_definition_xml(name, distribution_folder, author='Kreodont'):
     xml_text = '''<?xml version="1.0" encoding="iso-8859-1"?>
 <root version="3.3" release="8|CoreRPG:3">
     <name>%s</name>
@@ -21,7 +21,7 @@ def create_definition_xml(name, author='Kreodont'):
     <author>%s</author>
     <ruleset>5E</ruleset>
 </root>''' % (name, author)
-    with open('%s/definition.xml' % dist_folder, 'w') as output_file:
+    with open('%s/definition.xml' % distribution_folder, 'w') as output_file:
         output_file.write(xml_text)
 
 
