@@ -79,5 +79,3 @@ def translate_from_iso_codes(text):
         output_text = output_text.replace(letter, ru_letter)
 
     return output_text
-
-print(translate_to_iso_codes('Привет'))

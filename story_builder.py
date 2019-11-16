@@ -53,7 +53,6 @@ def zipdir(path, ziph, exceptions=()):
                 continue
             ziph.write(full_path, full_path_without_folder_name)
 
-
 def build_xml(module_name):
     root = FgXml(module_name)
     root.append_under('root', 'library')
@@ -88,7 +87,6 @@ def build_xml(module_name):
     root.append_under('npcdata', 'category', {"name": "Ru", "baseicon": "0", "decalicon": "0"})
     return root
 
-
 if __name__ == '__main__':
     module_name = 'Tomb'
     module_file_name = '%s.mod' % module_name
@@ -100,7 +98,7 @@ if __name__ == '__main__':
         exit(0)
 
     purge_dist_folder()
-    create_definition_xml(module_name)
+    create_definition_xml(module_name, dist_folder)
     xml = build_xml(module_name)
     index = 14
 
